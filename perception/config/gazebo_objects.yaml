@@ -1,0 +1,4 @@
+- name: "demo_cube"
+  id: 0
+  frame_id: "base_link"
+  size: [0.06, 0.06, 0.06]

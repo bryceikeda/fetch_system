@@ -1,0 +1,12 @@
+- name: "demo_cube"
+  surface: False
+  reference_frame: "base_link"
+  shape: 1 # BOX=1, SPHERE=2, CYLINDER=3, CONE=4 see shape_msgs/SolidPrimitive
+  dimensions: [0.06, 0.06, 0.06]
+  offset: [0.0, 0.0, 0.0]
+- name: "table1"
+  surface: True 
+  reference_frame: "base_link"
+  shape: 1
+  dimensions: [0.913, 0.913, 0.04]
+  offset: [0.0, 0.0, 0.755] #.755
