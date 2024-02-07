@@ -1,0 +1,5 @@
+models:
+  - name: coke_can
+    type: sdf
+    package: simulator
+    pose: [3.9, 3, .9, 0.015662, -0.021196, -0.000741]

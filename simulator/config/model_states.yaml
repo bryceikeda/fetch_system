@@ -1,0 +1,8 @@
+- name: ground_plane
+  position: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+- name: table1
+  position: [1.0, 0.0, -.08, 0.0, 0.0, 0.0, 1.0]
+- name: demo_cube
+  position: [0.6, 0.1, 0.725, 0.0, 0.0, 0.0, 1.0]
+- name: fetch
+  position: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1]

@@ -1,0 +1,5 @@
+- name: "table1"
+  frame_id: "base_link"
+  shape: 1
+  dimensions: [.913, .913, .04]
+  offset: [0.0, 0.0, 0.755]
