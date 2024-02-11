@@ -192,8 +192,8 @@ include_directories(
 install(
     FILES
     launch/object_spawner.launch
-    launch/fetch_fake_joints.launch
-    launch/fetch_gazebo.launch
+    launch/fake_joints_simulator.launch
+    launch/gazebo_simulator.launch
 #   # myfile1
 #   # myfile2
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

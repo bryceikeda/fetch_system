@@ -7,11 +7,11 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <manipulation/manipulation_parameters.h>
 
-constexpr char LOGNAME[] = "test pick and place";
+constexpr char LOGNAME[] = "pick place test";
 
 int main(int argc, char* argv[])
 {
-  ros::init(argc, argv, "testpickplace");
+  ros::init(argc, argv, "pick_place_test");
   ros::NodeHandle nh, pnh("~");
 
   ros::AsyncSpinner spinner(1);

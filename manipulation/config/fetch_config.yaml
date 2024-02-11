@@ -16,7 +16,6 @@ arm_home_pose: "ready"
 world_frame: "world"
 base_frame: "base_link"
 surface_link: "table1"
-surface_link_two: "shelf"
 
 # 0: horizontal_frame_transform, 1: vertical_frame_transform, 2: diagonal_frame_transform
 transform_orientation: 1
@@ -36,5 +35,4 @@ object_offset: [.05, 0, 0, 0, 0, 0]
 
 # BOX object specifications
 pick_object: "demo_cube"
-# place_pose: [1.0280001163482666, 0.28, 0.726599931716919, 0, 0, 0]
 place_pose:  [.6, 0.11, 0.742311, 0, 0, 0]

@@ -3,6 +3,7 @@
 
 constexpr char LOGNAME[] = "moveit_task_constructor";
 constexpr char Manipulation::LOGNAME[];
+using namespace manipulation;
 
 void Manipulation::loadParameters(const ros::NodeHandle& pnh_)
 {
@@ -30,8 +31,7 @@ void Manipulation::loadParameters(const ros::NodeHandle& pnh_)
   std::string surface_link_two;
   // Target object
   errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link);
-  errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link_two", surface_link_two);
-  parameters.support_surfaces_ = { surface_link, surface_link_two };
+  parameters.support_surfaces_ = { surface_link};
   // Pick/Place metrics
   errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_min_dist", parameters.approach_object_min_dist_);
   errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_max_dist", parameters.approach_object_max_dist_);
@@ -70,6 +70,8 @@ void Manipulation::initializeServer()
   pick_place_server_->registerPreemptCallback([this] { preemptPickPlaceCallback(); });
   pick_place_server_->start();
 }
+
+
 
 void Manipulation::TestPickPlace()
 {
@@ -121,7 +123,6 @@ void Manipulation::planRobotActionCallback(const manipulation::PickPlaceConstPtr
 {
   ROS_INFO("Message recieved");
 
-
   // If accepting parameterized frame_transform
   parameters.place_pose_ = msg->place_pose;
 
@@ -169,4 +170,24 @@ void Manipulation::preemptPickPlaceCallback()
 {
   preemt_requested_ = true;
   pick_place_server_->setPreempted();
+}
+
+bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res)
+{    
+    parameters.place_pose_ = req.manipulation_plan_request.place_pose;
+    parameters.task_type_ = req.manipulation_plan_request.task_type;
+
+
+    switch(req.manipulation_plan_request.task_type) 
+    {
+        case ManipulationPlanRequest::PICK:
+            ROS_INFO("PICK");
+            break;
+        case ManipulationPlanRequest::PLACE:
+            ROS_INFO("PICK");
+            break;
+        default:
+            ROS_INFO("PLACE_AND_PLACE");
+    }
+    return true; 
 }

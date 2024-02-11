@@ -191,7 +191,8 @@ include_directories(
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
-    launch/gazebo_startup.launch
+    launch/fetch_gazebo_startup.launch
+    launch/fetch_fake_joints_startup.launch
     #   # myfile1
 #   # myfile2
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

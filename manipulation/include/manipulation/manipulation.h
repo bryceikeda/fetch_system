@@ -26,6 +26,7 @@
 #include <moveit/task_constructor/solvers/cartesian_path.h>
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
+#include <moveit_task_constructor_msgs/Solution.h>
 #include <manipulation/PlanPickPlaceAction.h>
 #include <manipulation/PlanPickPlaceGoal.h>
 #include <actionlib/server/simple_action_server.h>
@@ -34,7 +35,9 @@
 #include "tasks/pick_place_task.h"
 #include <eigen_conversions/eigen_msg.h>
 #include <tf2_eigen/tf2_eigen.h>
-
+#include <manipulation/GetManipulationPlan.h>
+#include <manipulation/ManipulationPlanRequest.h>
+#include <tasks/task_base.h>
 using namespace moveit::task_constructor;
 
 typedef actionlib::SimpleActionServer<manipulation::PlanPickPlaceAction> PickPlaceServer;
@@ -51,8 +54,11 @@ public:
   void setParameters(ManipulationParameters parameters);
   void loadParameters(const ros::NodeHandle& pnh_);
 
+  bool handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res);
+
   void TestPickPlace(); 
   ros::Publisher plan_status;
+  ros::ServiceServer get_manipulation_plan_service;
 private:
   void initializeServer();
   std::unique_ptr<PickPlaceServer> pick_place_server_;
@@ -67,8 +73,9 @@ private:
   static constexpr char LOGNAME[]{ "manipulation" };
 
   ManipulationParameters parameters; 
+  moveit_task_constructor_msgs::Solution current_solution;  
   
-
   ros::NodeHandle pnh_;
+
 };
 #endif

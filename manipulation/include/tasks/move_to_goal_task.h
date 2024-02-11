@@ -46,15 +46,6 @@ public:
   MoveToGoalTask(const std::string& task_name);
   ~MoveToGoalTask() = default;
   bool init(const ManipulationParameters& parameters);
-  bool plan();
-  bool preempt();
-  bool execute();
-  void getSolutionMsg(moveit_task_constructor_msgs::Solution& solution);
-
-private:
-  TaskPtr task_;
-  const std::string task_name_;
-  Stage* current_state_stage_;
 };
 
 #endif

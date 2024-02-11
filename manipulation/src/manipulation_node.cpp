@@ -11,26 +11,24 @@ constexpr char LOGNAME[] = "manipulation node";
 
 int main(int argc, char* argv[])
 {
-  ros::init(argc, argv, "manipulation node");
-  ros::NodeHandle nh, pnh("~");
+    ros::init(argc, argv, "manipulation_node");
+    ros::NodeHandle nh, pnh("~");
 
-  auto manipulation = std::make_unique<Manipulation>(); 
-  manipulation->loadParameters(pnh);
-  manipulation->plan_status = nh.advertise<moveit_task_constructor_msgs::ExecuteTaskSolutionActionResult>("/execute_task_solution/result", 1, true);
-
-  // Uncomment if wanted to send and receive information from Unity
-  // auto sceneHandler = std::make_unique<SceneHandler>();
-	// ros::Subscriber add_objects_subscriber = nh.subscribe( "/unity/scene_objects", 1, &SceneHandler::sceneObjectsCallback,  &(*sceneHandler));
-  // ros::Subscriber plan_robot_action_subscriber = nh.subscribe( "/unity/query_planner", 1, &TaskPlanner::planRobotActionCallback, &(*manipulation));
-
+    auto manipulation = std::make_unique<Manipulation>(); 
+    manipulation->loadParameters(pnh);
+    manipulation->plan_status = nh.advertise<moveit_task_constructor_msgs::ExecuteTaskSolutionActionResult>("/execute_task_solution/result", 1, true);
+    
+    manipulation->get_manipulation_plan_service = nh.advertiseService("get_manipulation_plan", &Manipulation::handleManipulationPlanRequest, manipulation.get());
+ 
 	ros::Duration(5.0).sleep();
 	ros::Rate loop_rate(40); 
-	while(ros::ok()){
+	
+    while(ros::ok()){
 		ros::spinOnce();
 		loop_rate.sleep(); 
 	}
 
-  // Keep introspection alive
-  ros::waitForShutdown();
-  return 0;
+    // Keep introspection alive
+    ros::waitForShutdown();
+    return 0;
 }

@@ -50,6 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>actionlib_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>moveit_msgs</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
@@ -62,6 +63,7 @@
   <build_depend>tf2_eigen</build_depend>
   <build_export_depend>actionlib_msgs</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>message_runtime</build_export_depend>
   <build_export_depend>moveit_msgs</build_export_depend>
   <build_export_depend>moveit_ros_planning_interface</build_export_depend>
   <build_export_depend>moveit_task_constructor_core</build_export_depend>

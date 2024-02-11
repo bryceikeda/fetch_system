@@ -13,11 +13,13 @@ from shape_msgs.msg import SolidPrimitive
 from vision_msgs.msg import Detection3DArray, Detection3D, ObjectHypothesisWithPose, BoundingBox3D, VisionInfo
 from typing import Dict
 
+# Class used to buidl collision object message
 class CollisionObjectBuilder:
     def __init__(self, id, frame_id, shape, pose, dimensions):
         self.co = CollisionObject()
         self.co.header.frame_id = frame_id
         self.co.id = id
+
         self.co.pose = pose
         solid_primitive = SolidPrimitive()
         solid_primitive.type = shape
@@ -26,6 +28,8 @@ class CollisionObjectBuilder:
         primitive_pose = Pose()
         primitive_pose.orientation.w = 1
         self.co.primitive_poses.append(primitive_pose)
+
+        # Default to MOVE except for initialization where it is set to ADD
         self.co.operation = CollisionObject.MOVE
 
 class WorldMonitor:
@@ -35,9 +39,13 @@ class WorldMonitor:
         self.object_detections = Detection3DArray()
         self.surfaces = CollisionObjects()
         self.object_names = []
-
+    
+        # Topics utilize common message types for object detection
         rospy.Subscriber('/perception/object_detections', Detection3DArray, self.object_detections_callback)
         rospy.Subscriber('/perception/vision_info', VisionInfo, self.vision_info_callback)
+        
+        # CollisionObjects is an array of CollisionObject, which is custom
+        # This is specifically for updating the planning scene
         rospy.Subscriber('/perception/surfaces', CollisionObjects, self.surfaces_callback)
 
         self.planning_scene_service = rospy.ServiceProxy('apply_planning_scene', ApplyPlanningScene)
@@ -73,7 +81,7 @@ class WorldMonitor:
             planning_scene.world.collision_objects.append(co_builder.co)
 
         planning_scene.is_diff = True
-        return planning_scene()
+        return planning_scene
 
     def initialize_planning_scene(self):
         if not self.object_detections.detections or not self.surfaces.objects or not self.object_names:
@@ -117,7 +125,7 @@ if __name__ == '__main__':
     
     initialize_scene = True
    
-    # Delay planning scene to robot can move to starting pose
+    # Delay planning scene so robot can move to starting pose
     time.sleep(2)
 
     rate = rospy.Rate(1) 
