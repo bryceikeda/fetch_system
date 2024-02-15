@@ -1,11 +1,6 @@
 #include <iostream>
 #include "manipulation/manipulation.h"
-#include "tasks/pick_place_task.h"
-#include "tasks/move_to_goal_task.h"
-#include "tasks/open_close_gripper_task.h"
-#include <manipulation/PlanPickPlaceAction.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <manipulation/manipulation_parameters.h>
+#include "tasks/task_parameters_loader.h"
 
 constexpr char LOGNAME[] = "pick place test";
 
@@ -20,9 +15,11 @@ int main(int argc, char* argv[])
   ros::Duration(1.0).sleep();
 
   auto manipulation = std::make_unique<Manipulation>(); 
-  manipulation->loadParameters(pnh);
+  auto param_loader = std::make_unique<TaskParametersLoader>(); 
+  
+  param_loader->loadParameters(pnh);  
+  manipulation->setParameters(param_loader->getParameters());
 
-  manipulation->plan_status = nh.advertise<moveit_task_constructor_msgs::ExecuteTaskSolutionActionResult>("/execute_task_solution/result", 1, true);
   manipulation->TestPickPlace(); 
 
   // Keep introspection alive

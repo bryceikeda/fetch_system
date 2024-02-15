@@ -10,7 +10,6 @@ int32 VERTICAL=1
 int32 DIAGONAL=2
 int32 grasp_frame
 
-
 # If execution or simulation
 bool execute
 

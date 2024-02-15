@@ -1,5 +1,5 @@
-#ifndef MOVETOWAYPOINTSTASK_H
-#define MOVETOWAYPOINTSTASK_H
+#ifndef CLOSEGRIPPERTASK_H
+#define CLOSEGRIPPERTASK_H
 
 // ROS
 #include <ros/ros.h>
@@ -35,18 +35,16 @@
 #include <moveit_msgs/PlaceLocation.h>
 #include <tasks/task_parameters.h>
 #include <tasks/task_base.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <moveit_msgs/RobotState.h>
 #include <manipulation/ManipulationPlanRequest.h>
 #include <tasks/task_factory.h>
 
 using namespace moveit::task_constructor;
 
-class MoveToGoalTask : public TaskBase
+class CloseGripperTask : public TaskBase
 {
 public:
-  MoveToGoalTask(const std::string& task_name);
-  ~MoveToGoalTask() = default;
+  CloseGripperTask(const std::string& task_name);
+  ~CloseGripperTask() = default;
   bool init(const TaskParameters& parameters);
 };
 

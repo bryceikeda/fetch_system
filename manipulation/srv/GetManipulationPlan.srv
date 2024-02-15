@@ -2,4 +2,4 @@ manipulation/ManipulationPlanRequest manipulation_plan_request
 
 ---
 
-moveit_task_constructor_msgs/Solution manipulation_plan_reponse
+manipulation/ManipulationPlanResponse manipulation_plan_response

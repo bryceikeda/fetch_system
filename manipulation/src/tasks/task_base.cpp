@@ -1,127 +1,143 @@
 #include <tasks/task_base.h>
 
+//Initializes the TaskBase with a specified task name.
 TaskBase::TaskBase(const std::string& task_name) : task_name_(task_name)
 {
+    // Create a new Task instance and load the robot model associated with it.
     task_.reset(new moveit::task_constructor::Task(task_name));
     task_->loadRobotModel();
 }
 
-bool
-TaskBase::execute()
+TaskBase::~TaskBase()
+{
+
+}
+
+// Executes the planned task trajectory.
+bool TaskBase::execute()
 {
     TASK_INFO("Executing solution trajectory");
-    moveit_msgs::MoveItErrorCodes execute_result;
+
+    // Publish the task solution for introspection.
     task_->introspection().publishSolution(*task_->solutions().front());
-    execute_result = task_->execute(*task_->solutions().front());
-    // // If you want to inspect the goal message, use this instead:
-    // actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction>
-    // execute("execute_task_solution", true); execute.waitForServer();
-    // moveit_task_constructor_msgs::ExecuteTaskSolutionGoal execute_goal;
-    // task_->solutions().front()->fillMessage(execute_goal.solution);
-    // execute.sendGoalAndWait(execute_goal);
-    // execute_result = execute.getResult()->error_code;
-  
+
+	actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction>
+
+	execute("execute_task_solution", true); execute.waitForServer();
+
+	moveit_task_constructor_msgs::ExecuteTaskSolutionGoal execute_goal;
+
+	task_->solutions().front()->toMsg(execute_goal.solution);
+
+	execute.sendGoalAndWait(execute_goal);
+
+    moveit_msgs::MoveItErrorCodes execute_result = execute.getResult()->error_code;
+
+
+    // Handle the execution result.
     if (execute_result.val != moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-      ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Task execution failed and returned: " << execute_result.val);
-      return false;
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Task execution failed and returned: " << execute_result.val);
+        return false;
     }
-  
+
     return true;
-
 }
 
-void 
-TaskBase::getSolutionMsg(moveit_task_constructor_msgs::Solution& solution)
+void TaskBase::getSolutionMsg(moveit_task_constructor_msgs::Solution& solution)
 {
-  task_->solutions().front()->appendTo(solution);
+    task_->solutions().front()->toMsg(solution);
 }
 
-void 
-TaskBase::preempt()
+void TaskBase::preempt()
 {
-  task_->preempt();
+    task_->preempt();
 }
 
-bool
-TaskBase::plan()
+bool TaskBase::plan()
 {
     TASK_INFO("Searching for task solutions");
+
     try
-    { 
-      task_->plan(1);
+    {
+        // Attempt to plan the task with a maximum of one solution.
+        task_->plan(1);
     }
     catch (InitStageException& e)
-    { 
-      ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
-      return false;
+    {
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
+        return false;
     }
+
+    // Check if planning was successful and at least one solution is found.
     if (task_->numSolutions() == 0)
-    { 
-      ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed: ");
-      return false;
+    {
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed: No solutions found.");
+        return false;
     }
 
+    // Publish the task solution for external consumption.
     publishSolution();
-
     return true;
 }
 
-void 
-TaskBase::publishSolution()
+void TaskBase::publishSolution()
 {
     moveit_task_constructor_msgs::Solution solution;
     getSolutionMsg(solution);
-  
-    //ROS_INFO("%d", solution.sub_trajectory[0].trajectory.joint_trajectory.size());
+
+    // Introspection: Publish the solution for visualization and analysis.
     task_->introspection().publishSolution(*task_->solutions().front());
-       
 }
 
-void
-TaskBase::exposeTo(SerialContainer& container, const std::initializer_list<std::string>& properties)
+// Makes specified properties available for serialization container.
+void TaskBase::exposeTo(SerialContainer& container, const std::initializer_list<std::string>& properties)
 {
     task_->properties().exposeTo(container.properties(), properties);
 }
 
-void
-TaskBase::setProperty(const std::string& group, const std::string& name)
+// Associates a property with a specific group and name.
+void TaskBase::setProperty(const std::string& group, const std::string& name)
 {
-    task_->setProperty(group, name); 
+    task_->setProperty(group, name);
 }
 
-void 
-TaskBase::addStageToTask(Stage::pointer&& stage)
+// Appends a stage to the task execution pipeline.
+void TaskBase::addStageToTask(Stage::pointer&& stage)
 {
     task_->add(std::move(stage));
 }
 
-const robot_model::JointModelGroup* 
-TaskBase::getJointModelGroup(const std::string& group_name)
+// Retrieves the joint model group for a specified group name.
+const robot_model::JointModelGroup* TaskBase::getJointModelGroup(const std::string& group_name)
 {
     return task_->getRobotModel()->getJointModelGroup(group_name);
 }
 
-std::vector<std::string>
-TaskBase::getLinkModelNamesWithCollisionGeometry(const std::string& group_name)
+// Retrieves names of link models with collision geometry for a specified group.
+std::vector<std::string> TaskBase::getLinkModelNamesWithCollisionGeometry(const std::string& group_name)
 {
-    return task_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry(); 
+    return task_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry();
 }
 
-void
-TaskBase::TASK_INFO(const std::string& info)
+// Outputs informational messages related to the task.
+void TaskBase::TASK_INFO(const std::string& info)
 {
     ROS_INFO("[%s]: %s", task_name_.c_str(), info.c_str());
 }
 
-bool
-TaskBase::initTask()
+bool TaskBase::initTask()
 {
-    try {
+    try
+    {
+        // Attempt to initialize the task.
         task_->init();
-    } catch (InitStageException& e) {
+    }
+    catch (InitStageException& e)
+    {
         ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
         return false;
     }
+
     return true;
 }

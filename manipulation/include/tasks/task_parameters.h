@@ -1,5 +1,5 @@
-#ifndef MANIPULATIONPARAMETERS_H
-#define MANIPULATIONPARAMETERS_H
+#ifndef TASK_PARAMETERS_H
+#define TASK_PARAMETERS_H
 
 // ROS
 #include <ros/ros.h>
@@ -13,7 +13,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
-struct ManipulationParameters
+struct TaskParameters
 {
   short task_type_;
 
@@ -25,9 +25,10 @@ struct ManipulationParameters
   std::string base_frame_;
 
   // predefined poses in srdf
-  std::string hand_open_pose_;
-  std::string hand_close_pose_;
-  std::string arm_home_pose_;
+  std::string gripper_open_;
+  std::string gripper_close_;
+  std::string arm_ready_;
+  std::string arm_tuck_;
 
   // object + surface
   std::vector<std::string> support_surfaces_;

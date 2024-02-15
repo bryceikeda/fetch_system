@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosparam_shortcuts
   rospy
   std_msgs
+  std_srvs
   tf2_eigen
 )
 
@@ -60,6 +61,7 @@ add_message_files(
    FILES
     PickPlace.msg
     ManipulationPlanRequest.msg
+    ManipulationPlanResponse.msg
    #   Message1.msg
 #   Message2.msg
  )
@@ -133,15 +135,21 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-   src/${PROJECT_NAME}/manipulation.cpp
+add_library(manipulation
+   src/manipulation/manipulation.cpp
  )
 
 add_library(tasks
-   src/tasks/pick_place_task.cpp
+   src/tasks/pick_task.cpp
+   src/tasks/place_task.cpp
    src/tasks/move_to_goal_task.cpp
-   src/tasks/open_close_gripper_task.cpp
+   src/tasks/wave_task.cpp
+   src/tasks/dance_task.cpp
+   src/tasks/open_gripper_task.cpp
+   src/tasks/close_gripper_task.cpp
    src/tasks/task_base.cpp
+   src/tasks/task_factory.cpp
+   src/tasks/task_parameters_loader.cpp
 )
 
 ## Add cmake target dependencies of the library

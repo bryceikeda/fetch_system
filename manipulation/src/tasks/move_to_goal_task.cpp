@@ -1,26 +1,38 @@
 #include <tasks/move_to_goal_task.h>
 
-constexpr char LOGNAME[] = "move to task";
+const bool registered = TaskFactory::registerTask(
+  manipulation::ManipulationPlanRequest::MOVE_ARM,
+  [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
+      return std::make_unique<MoveToGoalTask>(taskName);
+  }
+);
+
+
+//static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::MOVE_ARM, [](const std::string& taskName) -> TaskBase* { return new MoveToGoalTask(taskName);});
 
 MoveToGoalTask::MoveToGoalTask(const std::string& task_name) : TaskBase(task_name)
 {
   current_state_stage_ = nullptr;
 }
 
-bool MoveToGoalTask::init(const ManipulationParameters& parameters)
+bool MoveToGoalTask::init(const TaskParameters& parameters)
 {
-  TASK_INFO("Initializing move to pipeline");
-  
-  auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
-  sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+    TASK_INFO("Initializing mtc pipeline");  
+    auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
+    //sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+    sampling_planner->setPlannerId("RRTConnectkConfigDefault");
 
-  // Set task properties, names used for the specific arm group by robot
-  // Set task properties
-  setProperty("group", parameters.arm_group_name_);
-  setProperty("eef", parameters.eef_name_);
-  setProperty("hand", parameters.hand_group_name_);
-  setProperty("ik_frame", parameters.hand_frame_);
-  
+    // Cartesian planner
+    auto cartesian_planner = std::make_shared<solvers::CartesianPath>();
+    cartesian_planner->setMaxVelocityScalingFactor(.2);
+    cartesian_planner->setMaxAccelerationScalingFactor(.2);
+    cartesian_planner->setStepSize(.01);
+
+    // Set task properties, names used for the specific arm group by robot
+    setProperty("group", parameters.arm_group_name_);
+    setProperty("eef", parameters.eef_name_);
+    setProperty("hand", parameters.hand_group_name_);
+    setProperty("ik_frame", parameters.hand_frame_);
   /****************************************************
    *                                                  *
    *               Current State                      *

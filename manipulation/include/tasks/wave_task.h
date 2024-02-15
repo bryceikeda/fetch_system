@@ -1,5 +1,5 @@
-#ifndef PICKPLACETASK_H
-#define PICKPLACETASK_H
+#ifndef WAVE_TASK_H
+#define WAVE_TASK_H
 
 // ROS
 #include <ros/ros.h>
@@ -28,28 +28,27 @@
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 #include <actionlib/server/simple_action_server.h>
 #include <manipulation/PlanPickPlaceAction.h>
-#include <manipulation/PickPlace.h>
-#include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
-
-#include <manipulation/manipulation_parameters.h>
+#include <tasks/task_parameters.h>
 #include <tasks/task_base.h>
+#include <tasks/move_to_goal_task.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <moveit_msgs/RobotState.h>
+#include <manipulation/ManipulationPlanRequest.h>
+#include <tasks/task_factory.h>
 
 using namespace moveit::task_constructor;
 
-class PickPlaceTask : public TaskBase
+class WaveTask : public TaskBase
 {
 public:
-  PickPlaceTask(const std::string& task_name);
-  ~PickPlaceTask() = default;
-  bool init(const ManipulationParameters& parameters);
-
-private:
-  Stage* attach_object_stage_;
+  WaveTask(const std::string& task_name);
+  ~WaveTask() = default;
+  bool init(const TaskParameters& parameters);
 };
 
 #endif

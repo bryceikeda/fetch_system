@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="executive" type="test_bt" name="test_bt" output="screen" />
+
+</launch>

@@ -1,5 +1,5 @@
-#ifndef MOVETOWAYPOINTSTASK_H
-#define MOVETOWAYPOINTSTASK_H
+#ifndef WAVE_TASK_H
+#define WAVE_TASK_H
 
 // ROS
 #include <ros/ros.h>
@@ -35,6 +35,7 @@
 #include <moveit_msgs/PlaceLocation.h>
 #include <tasks/task_parameters.h>
 #include <tasks/task_base.h>
+#include <tasks/move_to_goal_task.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/RobotState.h>
 #include <manipulation/ManipulationPlanRequest.h>
@@ -42,11 +43,11 @@
 
 using namespace moveit::task_constructor;
 
-class MoveToGoalTask : public TaskBase
+class DanceTask : public TaskBase
 {
 public:
-  MoveToGoalTask(const std::string& task_name);
-  ~MoveToGoalTask() = default;
+  DanceTask(const std::string& task_name);
+  ~DanceTask() = default;
   bool init(const TaskParameters& parameters);
 };
 

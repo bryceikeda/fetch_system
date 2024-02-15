@@ -1,11 +1,6 @@
 #include <iostream>
 #include "manipulation/manipulation.h"
-#include "tasks/pick_place_task.h"
-#include "tasks/move_to_goal_task.h"
-#include "tasks/open_close_gripper_task.h"
-#include <manipulation/PlanPickPlaceAction.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <manipulation/manipulation_parameters.h>
+#include "tasks/task_parameters_loader.h"
 
 constexpr char LOGNAME[] = "manipulation node";
 
@@ -15,11 +10,17 @@ int main(int argc, char* argv[])
     ros::NodeHandle nh, pnh("~");
 
     auto manipulation = std::make_unique<Manipulation>(); 
-    manipulation->loadParameters(pnh);
-    manipulation->plan_status = nh.advertise<moveit_task_constructor_msgs::ExecuteTaskSolutionActionResult>("/execute_task_solution/result", 1, true);
+    auto param_loader = std::make_unique<TaskParametersLoader>();
     
+    param_loader->loadParameters(pnh);
+    manipulation->setParameters(param_loader->getParameters());
+
     manipulation->get_manipulation_plan_service = nh.advertiseService("get_manipulation_plan", &Manipulation::handleManipulationPlanRequest, manipulation.get());
- 
+
+    manipulation->update_planning_scene_service = nh.serviceClient<std_srvs::Trigger>("update_planning_scene"); 
+    
+    manipulation->update_planning_scene_service.waitForExistence();
+
 	ros::Duration(5.0).sleep();
 	ros::Rate loop_rate(40); 
 	

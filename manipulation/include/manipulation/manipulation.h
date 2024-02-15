@@ -8,6 +8,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/ApplyPlanningScene.h>
 
 // MTC
 #include <moveit/task_constructor/task.h>
@@ -31,51 +32,40 @@
 #include <manipulation/PlanPickPlaceGoal.h>
 #include <actionlib/server/simple_action_server.h>
 #include "manipulation/PickPlace.h"
-#include <manipulation/manipulation_parameters.h>
-#include "tasks/pick_place_task.h"
+#include <tasks/task_parameters.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <manipulation/GetManipulationPlan.h>
 #include <manipulation/ManipulationPlanRequest.h>
-#include <tasks/task_base.h>
-using namespace moveit::task_constructor;
+#include <manipulation/ManipulationPlanResponse.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+#include <std_srvs/Trigger.h>
 
-typedef actionlib::SimpleActionServer<manipulation::PlanPickPlaceAction> PickPlaceServer;
+#include <tasks/task_base.h>
+#include <tasks/task_factory.h>
+#include "tasks/pick_task.h"
+#include "tasks/place_task.h"
+#include "tasks/move_to_goal_task.h"
+#include "tasks/close_gripper_task.h"
+#include "tasks/open_gripper_task.h"
+
+using namespace moveit::task_constructor;
 
 class Manipulation
 {
 public:
   Manipulation();
   ~Manipulation() = default;
-
-  void executePickPlaceCallback(const manipulation::PlanPickPlaceGoalConstPtr& goal);
-  void preemptPickPlaceCallback();
-  void planRobotActionCallback(const manipulation::PickPlaceConstPtr& msg);
-  void setParameters(ManipulationParameters parameters);
-  void loadParameters(const ros::NodeHandle& pnh_);
-
+  
+  void setParameters(TaskParameters& params);
   bool handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res);
 
-  void TestPickPlace(); 
-  ros::Publisher plan_status;
   ros::ServiceServer get_manipulation_plan_service;
-private:
-  void initializeServer();
-  std::unique_ptr<PickPlaceServer> pick_place_server_;
-
-  // Which transform to use
-  int transform_orientation;
-  std::vector<double> diagonal_frame_transform {0.02, 0, 0.0, 0, 3.9275, 0.0};  
-  std::vector<double> horizontal_frame_transform {0.02, 0, 0.0, 0.0, 0.0, 0.0};
-  std::vector<double> vertical_frame_transform {0.02, 0, 0.0,  0, 4.713, 0.0};
-
-  bool preemt_requested_;
-  static constexpr char LOGNAME[]{ "manipulation" };
-
-  ManipulationParameters parameters; 
-  moveit_task_constructor_msgs::Solution current_solution;  
+  ros::ServiceClient update_planning_scene_service;
   
+  void TestPickPlace(); 
+private:
+  TaskParameters parameters; 
   ros::NodeHandle pnh_;
-
 };
 #endif

@@ -1,13 +1,8 @@
 #include <iostream>
 #include "manipulation/manipulation.h"
-#include "tasks/pick_place_task.h"
-#include "tasks/move_to_goal_task.h"
-#include "tasks/open_close_gripper_task.h"
-#include <manipulation/PlanPickPlaceAction.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <manipulation/manipulation_parameters.h>
 #include <manipulation/GetManipulationPlan.h>
 #include <manipulation/ManipulationPlanRequest.h>
+#include <actionlib/client/simple_action_client.h>
 
 constexpr char LOGNAME[] = "manipulation request";
 
@@ -24,26 +19,39 @@ int main(int argc, char* argv[])
   ros::Duration(1.0).sleep();
 
   GetManipulationPlan get_plan;
-  get_plan.request.manipulation_plan_request.task_type = ManipulationPlanRequest::PICK_AND_PLACE; 
+  get_plan.request.manipulation_plan_request.task_type = ManipulationPlanRequest::DANCE; 
 
   get_plan.request.manipulation_plan_request.object_name = "demo_cube";
-  get_plan.request.manipulation_plan_request.surface_name = "table1";
+  get_plan.request.manipulation_plan_request.support_surfaces = {"table1"};
+
+  get_plan.request.manipulation_plan_request.task_name = "pick_and_place";
 
   geometry_msgs::Pose place_pose; 
   place_pose.position.x = .6;
-  place_pose.position.y = .2;
-  place_pose.position.z = .725;
+  place_pose.position.y = .11;
+  place_pose.position.z = .742311;
   place_pose.orientation.w = 1.0;  
-  
+ 
+  get_plan.request.manipulation_plan_request.place_pose = place_pose; 
+
   ros::ServiceClient client = nh.serviceClient<manipulation::GetManipulationPlanRequest>("get_manipulation_plan");
+
+  actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction>
+  execute("execute_task_solution", true); execute.waitForServer();
+  
+  moveit_task_constructor_msgs::ExecuteTaskSolutionGoal execute_goal;
 
   if (client.call(get_plan))
   {
-    ROS_INFO("received");
+    ROS_INFO("Received");
+    execute_goal.solution = get_plan.response.manipulation_plan_response.solution;
+    execute.sendGoalAndWait(execute_goal);
+    moveit_msgs::MoveItErrorCodes execute_result = execute.getResult()->error_code;
+    ROS_INFO("Executing Plan");
   }
   else
   {
-    ROS_ERROR("Failed to call service add_two_ints");
+    ROS_ERROR("Failed to call service get_manipulation_plan");
     return 1;
   }
  
@@ -51,6 +59,6 @@ int main(int argc, char* argv[])
 
 
   // Keep introspection alive
-  //ros::waitForShutdown();
+  ros::waitForShutdown();
   return 0;
 }

@@ -8,9 +8,10 @@ hand_group_name: "gripper"
 hand_frame: "gripper_link"
 
 # Poses
-hand_open_pose: "open"
-hand_close_pose: "close"
-arm_home_pose: "ready"
+gripper_open: "open"
+gripper_close: "close"
+arm_ready: "ready"
+arm_tuck: "tuck"
 
 # Scene frames
 world_frame: "world"
@@ -21,7 +22,7 @@ surface_link: "table1"
 transform_orientation: 1
 
 # Place offset from surface
-place_surface_offset:  .001 
+place_surface_offset: .001 
 
 # Valid distance range when approaching an object for picking
 approach_object_min_dist: 0.167
