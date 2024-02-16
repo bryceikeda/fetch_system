@@ -144,6 +144,7 @@ add_library(tasks
    src/tasks/place_task.cpp
    src/tasks/move_to_goal_task.cpp
    src/tasks/wave_task.cpp
+   src/tasks/wipe_task.cpp
    src/tasks/dance_task.cpp
    src/tasks/open_gripper_task.cpp
    src/tasks/close_gripper_task.cpp

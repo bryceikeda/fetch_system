@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   ros::Duration(1.0).sleep();
 
   GetManipulationPlan get_plan;
-  get_plan.request.manipulation_plan_request.task_type = ManipulationPlanRequest::DANCE; 
+  get_plan.request.manipulation_plan_request.task_type = ManipulationPlanRequest::WIPE; 
 
   get_plan.request.manipulation_plan_request.object_name = "demo_cube";
   get_plan.request.manipulation_plan_request.support_surfaces = {"table1"};

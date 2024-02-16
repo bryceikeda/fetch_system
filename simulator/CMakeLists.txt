@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   moveit_core
   moveit_msgs
-  moveit_msgs
   moveit_ros_planning_interface
   moveit_task_constructor_core
   moveit_task_constructor_msgs
@@ -169,7 +168,6 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
-   scripts/object_spawner.py
    scripts/model_states_publisher.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
@@ -191,7 +189,6 @@ include_directories(
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(
     FILES
-    launch/object_spawner.launch
     launch/fake_joints_simulator.launch
     launch/gazebo_simulator.launch
 #   # myfile1
