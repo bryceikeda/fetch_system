@@ -12,7 +12,7 @@
     <include file="$(find perception)/launch/gazebo_perception.launch" />
 
     <!-- Launch World Monitor -->
-    <node name="world_monitor" pkg="world_monitor" type="world_monitor_node.py" output="screen"/>
+    <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen"/>
 
     <!-- Move robot to ready state -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>

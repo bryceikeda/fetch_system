@@ -20,8 +20,9 @@ class TaskParametersLoader {
         TaskParameters parameters;
         // Which transform to use
         int transform_orientation = 0;
+        // .02 or .1665
         std::vector<double> diagonal_frame_transform {0.02, 0, 0.0, 0, 3.9275, 0.0};
-        std::vector<double> horizontal_frame_transform {0.02, 0, 0.0, 0.0, 0.0, 0.0};
+        std::vector<double> horizontal_frame_transform {0.05, 0, 0.0, 0.0, 0.0, 0.0};
         std::vector<double> vertical_frame_transform {0.02, 0, 0.0,  0, 4.713, 0.0};
 };
 

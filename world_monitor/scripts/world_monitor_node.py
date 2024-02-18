@@ -94,10 +94,10 @@ class WorldMonitor:
 
         try:
             self.planning_scene_service(planning_scene)
-            print("Planning Scene Initialized")
+            print("[world_monitor_node] Planning Scene Initialized")
             return False
         except rospy.ServiceException as e:
-            rospy.logerr(f"Service call failed: {e}")
+            rospy.logerr(f"[world_monitor_node] Service call failed: {e}")
             return True
 
     def add_surfaces_to_scene(self, planning_scene):
@@ -109,6 +109,7 @@ class WorldMonitor:
             surface.operation = CollisionObject.ADD
             planning_scene.object_colors.append(color)
             planning_scene.world.collision_objects.append(surface)
+            print("[world_monitor_node] Adding to support surface to scene: " + surface.id)
 
     def add_object_detections_to_scene(self, planning_scene):
         for detection in self.object_detections.detections:
@@ -119,6 +120,7 @@ class WorldMonitor:
             co_builder = CollisionObjectBuilder(name, frame_id, 1, position, dimensions)
             co_builder.co.operation = CollisionObject.ADD
             planning_scene.world.collision_objects.append(co_builder.co)
+            print("[world_monitor_node] Adding to manipulable object to scene: " + name)
 
 if __name__ == '__main__':
     world_monitor = WorldMonitor()

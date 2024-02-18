@@ -19,13 +19,13 @@ base_frame: "base_link"
 surface_link: "table1"
 
 # 0: horizontal_frame_transform, 1: vertical_frame_transform, 2: diagonal_frame_transform
-transform_orientation: 1
+transform_orientation: 0
 
 # Place offset from surface
 place_surface_offset: .001 
 
 # Valid distance range when approaching an object for picking
-approach_object_min_dist: 0.167
+approach_object_min_dist: 0.05
 approach_object_max_dist: 0.2
 
 # Valid height range when lifting an object after pick

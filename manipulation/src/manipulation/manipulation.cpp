@@ -125,6 +125,8 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
     task->getSolutionMsg(res.manipulation_plan_response.solution); 
    
     res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
-    
+
+    // Publish Solution 
+    task->publishSolution();
     return true;
 }   

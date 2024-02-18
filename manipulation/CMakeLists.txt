@@ -21,6 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   tf2_eigen
+
+  rviz_marker_tools
 )
 
 ## System dependencies are found with CMake's conventions
@@ -118,7 +120,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES manipulation tasks
+  LIBRARIES manipulation tasks manipulation_stages
   CATKIN_DEPENDS actionlib_msgs message_runtime# geometry_msgs moveit_msgs moveit_ros_planning_interface moveit_task_constructor_core moveit_task_constructor_msgs roscpp rosparam_shortcuts rospy std_msgs tf2_eigen
 #  DEPENDS system_lib
 )
@@ -139,12 +141,21 @@ add_library(manipulation
    src/manipulation/manipulation.cpp
  )
 
+add_library(manipulation_stages
+    src/stages/pour_into.cpp
+ )
+add_dependencies(manipulation_stages ${catkin_EXPORTED_TARGETS})
+target_link_libraries(manipulation_stages ${catkin_LIBRARIES})
+
+
+
 add_library(tasks
    src/tasks/pick_task.cpp
    src/tasks/place_task.cpp
    src/tasks/move_to_goal_task.cpp
    src/tasks/wave_task.cpp
    src/tasks/wipe_task.cpp
+   src/tasks/pour_task.cpp
    src/tasks/dance_task.cpp
    src/tasks/open_gripper_task.cpp
    src/tasks/close_gripper_task.cpp
@@ -173,9 +184,6 @@ add_executable(${PROJECT_NAME}_node src/manipulation_node.cpp)
 ## same as for the library above
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(manipulation_request src/manipulation_request.cpp)
-add_dependencies(manipulation_request ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 add_executable(pick_place_test src/pick_place_test.cpp)
 add_dependencies(pick_place_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
@@ -199,12 +207,6 @@ target_link_libraries(${PROJECT_NAME}_node
     ${catkin_LIBRARIES}
  )
 
-
-target_link_libraries(manipulation_request
-    manipulation
-    tasks
- ${catkin_LIBRARIES}
-)
 
 #############
 ## Install ##

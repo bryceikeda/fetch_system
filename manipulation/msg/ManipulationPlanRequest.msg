@@ -7,6 +7,7 @@ int32 CLOSE_GRIPPER=4
 int32 WAVE=5
 int32 DANCE=6
 int32 WIPE=6
+int32 POUR=7
 int32 task_type
 
 # Name to label the task
