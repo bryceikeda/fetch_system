@@ -16,8 +16,8 @@ def main():
     # Use a context manager for the spinner
     get_plan = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)  # Fix service type
     manipulation_request = ManipulationPlanRequest()
-    manipulation_request.task_type = ManipulationPlanRequest.PICK
-    manipulation_request.object_name = "cylinder"
+    manipulation_request.task_type = ManipulationPlanRequest.POUR
+    manipulation_request.object_name = "bottle"
     manipulation_request.support_surfaces = ["table1"]
     manipulation_request.task_name = "pick_and_place"
 

@@ -4,7 +4,10 @@
 TaskBase::TaskBase(const std::string& task_name) : task_name_(task_name)
 {
     // Create a new Task instance and load the robot model associated with it.
-    task_.reset(new moveit::task_constructor::Task(task_name));
+    task_.reset(new moveit::task_constructor::Task());
+    // Setting this names the stages the task, not the solution which is used
+    // to publish the solution on topic
+    task_->stages()->setName(task_name);
     task_->loadRobotModel();
 }
 
@@ -77,17 +80,8 @@ bool TaskBase::plan()
     }
 
     // Publish the task solution for external consumption.
-    publishSolution();
+    task_->introspection().publishAllSolutions();
     return true;
-}
-
-void TaskBase::publishSolution()
-{
-    moveit_task_constructor_msgs::Solution solution;
-    getSolutionMsg(solution);
-
-    // Introspection: Publish the solution for visualization and analysis.
-    task_->introspection().publishSolution(*task_->solutions().front());
 }
 
 // Makes specified properties available for serialization container.

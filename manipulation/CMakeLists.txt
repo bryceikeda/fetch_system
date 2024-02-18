@@ -144,10 +144,6 @@ add_library(manipulation
 add_library(manipulation_stages
     src/stages/pour_into.cpp
  )
-add_dependencies(manipulation_stages ${catkin_EXPORTED_TARGETS})
-target_link_libraries(manipulation_stages ${catkin_LIBRARIES})
-
-
 
 add_library(tasks
    src/tasks/pick_task.cpp
@@ -203,10 +199,14 @@ target_link_libraries(pick_place_test
 
 target_link_libraries(${PROJECT_NAME}_node
    manipulation
+   manipulation_stages
    tasks
     ${catkin_LIBRARIES}
  )
 
+target_link_libraries(tasks 
+    manipulation_stages
+    )
 
 #############
 ## Install ##

@@ -25,7 +25,7 @@ transform_orientation: 0
 place_surface_offset: .001 
 
 # Valid distance range when approaching an object for picking
-approach_object_min_dist: 0.05
+approach_object_min_dist: 0.1
 approach_object_max_dist: 0.2
 
 # Valid height range when lifting an object after pick

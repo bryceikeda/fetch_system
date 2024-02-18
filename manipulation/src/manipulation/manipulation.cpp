@@ -24,27 +24,27 @@ void Manipulation::TestPickPlace()
 
     if (!pick->init(parameters))
     {
-      ROS_INFO_NAMED(LOGNAME, "Initialization failed");
+      ROS_INFO_NAMED(LOGNAME, "[manipulation node] Initialization failed");
       return;
     }
 
     if (pick->plan())
     {
-        ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+        ROS_INFO_NAMED(LOGNAME, "[manipulation node] Planning succeded");
         ros::Duration(3.0).sleep();
 
         if (pick->execute())
         {
-          ROS_INFO_NAMED(LOGNAME, "Execution complete");
+          ROS_INFO_NAMED(LOGNAME, "[manipulation node] Execution complete");
         }
         else
         {
-           ROS_INFO_NAMED(LOGNAME, "Execution failed");
+           ROS_INFO_NAMED(LOGNAME, "[manipulation node] Execution failed");
         }
     }
     else
     {
-      ROS_INFO_NAMED(LOGNAME, "Planning failed");
+      ROS_INFO_NAMED(LOGNAME, "[manipulation node] Planning failed");
     }
     
     parameters.task_type_ = manipulation::ManipulationPlanRequest::PICK;
@@ -86,11 +86,14 @@ void Manipulation::TestPickPlace()
 bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res)
 {    
     std_srvs::Trigger srv; 
+    
+    ROS_INFO("[manipulation_node] Request: Update Planning Scene");
+    
     if (update_planning_scene_service.call(srv)) {
-        ROS_INFO("Planning scene updated.");
+        ROS_INFO("[manipulation_node] Response: Planning Scene updated");
     } else {
         res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-        ROS_ERROR("[%s] Planning scene failed to update", req.manipulation_plan_request.task_name.c_str());
+        ROS_ERROR("[manipulation_node] Response: Planning Scene failed to update for %s", req.manipulation_plan_request.task_name.c_str());
         return true;  
     }
 
@@ -106,10 +109,10 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
     // Add list of support surfaces to allow collisions 
     for (const auto& str : req.manipulation_plan_request.support_surfaces) {
         parameters.support_surfaces_.push_back(str); 
-        std::cout << str << std::endl; 
     }
 
     auto task = TaskFactory::createTask(parameters.task_type_, task_name.c_str());
+    
     if (!task->init(parameters))
     {
       res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE; 
@@ -126,7 +129,5 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
    
     res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
 
-    // Publish Solution 
-    task->publishSolution();
     return true;
 }   

@@ -35,6 +35,8 @@
 /* Authors: Michael Goerner, Henning Kayser
    Desc:    Pour from attached bottle into(onto) an object
 */
+#ifndef POUR_STAGE_H
+#define POUR_STAGE_H
 
 #pragma once
 
@@ -48,7 +50,7 @@
 
 #include <Eigen/Dense>
 
-namespace mtc_pour {
+namespace manipulation_stages {
 using namespace moveit::task_constructor;
 // TODO: should this be factorized in containers + MoveTo with multi-points?
 
@@ -101,3 +103,4 @@ protected:
                SubTrajectory &trajectory);
 };
 }
+#endif

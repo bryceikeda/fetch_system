@@ -48,6 +48,9 @@
 #include "tasks/move_to_goal_task.h"
 #include "tasks/close_gripper_task.h"
 #include "tasks/open_gripper_task.h"
+#include "tasks/wave_task.h"
+#include "tasks/pour_task.h"
+#include "tasks/dance_task.h"
 
 using namespace moveit::task_constructor;
 

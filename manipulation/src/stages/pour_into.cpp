@@ -121,7 +121,7 @@ inline double getObjectHeight(const moveit_msgs::CollisionObject &o) {
 
 } /* anonymous namespace */
 
-namespace mtc_pour {
+namespace manipulation_stages {
 
 PourInto::PourInto(std::string name) : PropagatingForward(std::move(name)) {
   auto &p = properties();

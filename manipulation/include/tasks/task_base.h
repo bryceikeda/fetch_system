@@ -36,7 +36,6 @@ public:
   bool execute();
   
   void getSolutionMsg(moveit_task_constructor_msgs::Solution& solution);
-  void publishSolution(); 
     
   // Debugging output message with task name
   void TASK_INFO(const std::string& info);

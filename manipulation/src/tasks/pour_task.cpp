@@ -1,16 +1,13 @@
 #include <tasks/pour_task.h>
 
   const bool registered = TaskFactory::registerTask(
-      manipulation::ManipulationPlanRequest::PICK,
+      manipulation::ManipulationPlanRequest::POUR,
       [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
           return std::make_unique<PourTask>(taskName);
       }
   );
 
-
-//static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::PICK, [](const std::string& taskName) -> TaskBase* { return new PourTask(taskName);}); 
-
-using namespace manipulation;
+using namespace moveit::task_constructor; 
 
 PourTask::PourTask(const std::string& task_name) : TaskBase(task_name)
 {
@@ -42,7 +39,25 @@ bool PourTask::init(const TaskParameters& parameters)
    *               Current State                      *
    *                                                  *
    ***************************************************/
-  {
+   // don't spill liquid
+    moveit_msgs::Constraints upright_constraint;
+    upright_constraint.name = parameters.hand_frame_;
+    upright_constraint.orientation_constraints.resize(1);
+    {
+        moveit_msgs::OrientationConstraint &c =
+            upright_constraint.orientation_constraints[0];
+        c.link_name = parameters.hand_frame_;
+        c.header.frame_id = "table1";
+        c.orientation.w = 1.0;
+        c.absolute_x_axis_tolerance = 0.65;
+        c.absolute_y_axis_tolerance = 0.65;
+        c.absolute_z_axis_tolerance = M_PI;
+        c.weight = 1.0;
+    }
+      
+      
+      
+     {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
     _current_state->setTimeout(10);
 
@@ -195,6 +210,56 @@ bool PourTask::init(const TaskParameters& parameters)
       }
 
       addStageToTask(std::move(grasp));
+    }
+    /****************************************************
+    .... *           Pose above glass -> pre-pour pose  *
+    ***************************************************/
+    {
+        auto stage = std::make_unique<stages::GeneratePose>("pose above glass");
+        stage->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group", "ik_frame"});
+        geometry_msgs::PoseStamped p;
+        p.header.frame_id= "glass";
+        p.pose.position.z = .2;
+        p.pose.orientation.w = 1;
+       
+        stage->setPose(p);
+		stage->properties().configureInitFrom(Stage::PARENT);
+		stage->setMonitoredStage(attach_object_stage_);
+		
+        auto wrapper = std::make_unique<stages::ComputeIK>("pre-pour pose2", std::move(stage) );
+		wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group", "ik_frame"});//
+		wrapper->setMaxIKSolutions(8);
+		wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);//															// <=================== !!! set ik for transform hand_frame
+		wrapper->properties().property("eef").configureInitFrom(Stage::PARENT, "eef");//
+		wrapper->properties().property("group").configureInitFrom(Stage::PARENT, "group");//
+		wrapper->properties().configureInitFrom(Stage::INTERFACE, {"target_pose"});
+		addStageToTask(std::move(wrapper));
+        stage->setPose(p);
+        stage->properties().configureInitFrom(Stage::PARENT);
+        stage->setMonitoredStage(attach_object_stage_);
+    }
+    /****************************************************
+    .... *              Pouring                         *
+    ***************************************************/
+    {
+       auto stage = std::make_unique<manipulation_stages::PourInto>("pouring");
+        stage->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group", "ik_frame"});
+        stage->setBottle("cylinder");
+        stage->setContainer("glass");
+
+        stage->setPourOffset(Eigen::Vector3d(0,0.03,0.01));
+
+        // pour_tilt_angle, pour_duration, pour_waypoint_duration
+        stage->setTiltAngle(2.0);
+        stage->setPourDuration(ros::Duration(4.0)); //changed duration here!! <===
+        stage->setWaypointDuration(ros::Duration(.25));
+        {
+          geometry_msgs::Vector3Stamped pouring_axis;
+          pouring_axis.header.frame_id= "glass"; //s_model_tool0
+          pouring_axis.vector.x = 1.0; //x //<===== -1
+          stage->setPouringAxis(pouring_axis);
+        }
+        addStageToTask(std::move(stage));
     }
   }
 
