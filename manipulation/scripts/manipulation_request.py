@@ -19,11 +19,11 @@ def main():
     manipulation_request.task_type = ManipulationPlanRequest.POUR
     manipulation_request.object_name = "bottle"
     manipulation_request.support_surfaces = ["table1"]
-    manipulation_request.task_name = "pick_and_place"
+    manipulation_request.task_name = "task_request"
 
     # Use dictionary-style initialization for Pose
     manipulation_request.place_pose = Pose(
-        position=Point(0.6, 0.11, 0.742311),
+        position=Point(0.8, 0.11, 0.58),
         orientation=Quaternion(0, 0, 0, 1.0)
     )
 
