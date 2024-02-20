@@ -1,21 +1,19 @@
-#include <tasks/close_gripper_task.h>
+#include <tasks/close_hand_task.h>
 
 const bool registered = TaskFactory::registerTask(
-    manipulation::ManipulationPlanRequest::CLOSE_GRIPPER,
+    manipulation::ManipulationPlanRequest::CLOSE_HAND,
     [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-        return std::make_unique<CloseGripperTask>(taskName);
+        return std::make_unique<CloseHandTask>(taskName);
     }
 );
 
-//static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::CLOSE_GRIPPER, [](const std::string& taskName) -> TaskBase* { return new CloseGripperTask(taskName);}); 
-
-CloseGripperTask::CloseGripperTask(const std::string& task_name) : TaskBase(task_name)
+CloseHandTask::CloseHandTask(const std::string& task_name) : TaskBase(task_name)
 {
   current_state_stage_ = nullptr;
 }
 
 bool 
-CloseGripperTask::init(const TaskParameters& parameters)
+CloseHandTask::init(const TaskParameters& parameters)
 {
       TASK_INFO("Initializing mtc pipeline");
       auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
@@ -63,9 +61,9 @@ CloseGripperTask::init(const TaskParameters& parameters)
     }
 
     {
-        auto stage = std::make_unique<stages::MoveTo>("close gripper", sampling_planner);
+        auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
         stage->setGroup(parameters.hand_group_name_);
-        stage->setGoal(parameters.gripper_close_);
+        stage->setGoal(parameters.hand_close_pose_);
         addStageToTask(std::move(stage));
     }
   return initTask();

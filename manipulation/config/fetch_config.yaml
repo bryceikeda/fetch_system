@@ -8,10 +8,10 @@ hand_group_name: "gripper"
 hand_frame: "gripper_link"
 
 # Poses
-gripper_open: "open"
-gripper_close: "close"
-arm_ready: "ready"
-arm_tuck: "tuck"
+hand_open_pose: "open"
+hand_close_pose: "close"
+arm_ready_pose: "ready"
+arm_tuck_pose: "tuck"
 
 # Scene frames
 world_frame: "world"
@@ -19,7 +19,7 @@ base_frame: "base_link"
 surface_link: "table1"
 
 # 0: horizontal_frame_transform, 1: vertical_frame_transform, 2: diagonal_frame_transform
-transform_orientation: 0
+transform_orientation: 1
 
 # Place offset from surface
 place_surface_offset: .001 

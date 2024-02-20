@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # Lists of joint angles in the same order as in joint_names
     home_pose = [[0.0, 1.1266, -0.4946, -2.9679, 1.3058, 1.267, 1.2769, 3.1415]]
 
-    time.sleep(10)
+    #time.sleep(10)
 
     for pose in home_pose:
         if rospy.is_shutdown():

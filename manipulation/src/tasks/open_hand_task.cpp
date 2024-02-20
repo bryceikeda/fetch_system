@@ -1,22 +1,19 @@
-#include <tasks/open_gripper_task.h>
+#include <tasks/open_hand_task.h>
 
   const bool registered = TaskFactory::registerTask(
-      manipulation::ManipulationPlanRequest::OPEN_GRIPPER,
+      manipulation::ManipulationPlanRequest::OPEN_HAND,
       [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-          return std::make_unique<OpenGripperTask>(taskName);
+          return std::make_unique<OpenHandTask>(taskName);
       }
   );
 
-
-//static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::OPEN_GRIPPER, [](const std::string& taskName) -> TaskBase* { return new OpenGripperTask(taskName);}); 
-
-OpenGripperTask::OpenGripperTask(const std::string& task_name) : TaskBase(task_name)
+OpenHandTask::OpenHandTask(const std::string& task_name) : TaskBase(task_name)
 {
   current_state_stage_ = nullptr;
 }
 
 bool 
-OpenGripperTask::init(const TaskParameters& parameters)
+OpenHandTask::init(const TaskParameters& parameters)
 {
       TASK_INFO("Initializing mtc pipeline");
       auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
@@ -66,7 +63,7 @@ OpenGripperTask::init(const TaskParameters& parameters)
     {
         auto stage = std::make_unique<stages::MoveTo>("open gripper", sampling_planner);
         stage->setGroup(parameters.hand_group_name_);
-        stage->setGoal(parameters.gripper_open_);
+        stage->setGoal(parameters.hand_open_pose_);
         addStageToTask(std::move(stage));
     }
   return initTask();

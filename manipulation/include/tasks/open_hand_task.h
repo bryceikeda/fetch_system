@@ -1,5 +1,5 @@
-#ifndef CLOSEGRIPPERTASK_H
-#define CLOSEGRIPPERTASK_H
+#ifndef OPEN_HAND_TASK_H
+#define OPEN_HAND_TASK_H
 
 // ROS
 #include <ros/ros.h>
@@ -40,11 +40,11 @@
 
 using namespace moveit::task_constructor;
 
-class CloseGripperTask : public TaskBase
+class OpenHandTask : public TaskBase
 {
 public:
-  CloseGripperTask(const std::string& task_name);
-  ~CloseGripperTask() = default;
+  OpenHandTask(const std::string& task_name);
+  ~OpenHandTask() = default;
   bool init(const TaskParameters& parameters);
 };
 

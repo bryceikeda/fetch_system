@@ -25,10 +25,10 @@ struct TaskParameters
   std::string base_frame_;
 
   // predefined poses in srdf
-  std::string gripper_open_;
-  std::string gripper_close_;
-  std::string arm_ready_;
-  std::string arm_tuck_;
+  std::string hand_open_pose_;
+  std::string hand_close_pose_;
+  std::string arm_ready_pose_;
+  std::string arm_tuck_pose_;
 
   // object + surface
   std::vector<std::string> support_surfaces_;

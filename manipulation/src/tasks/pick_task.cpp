@@ -7,9 +7,6 @@
       }
   );
 
-
-//static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::PICK, [](const std::string& taskName) -> TaskBase* { return new PickTask(taskName);}); 
-
 using namespace manipulation;
 
 PickTask::PickTask(const std::string& task_name) : TaskBase(task_name)
@@ -68,7 +65,7 @@ bool PickTask::init(const TaskParameters& parameters)
     {
       auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
       stage->setGroup(parameters.hand_group_name_);
-      stage->setGoal(parameters.gripper_open_);
+      stage->setGoal(parameters.hand_open_pose_);
       addStageToTask(std::move(stage));
     }
 
@@ -99,7 +96,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
         // Set hand forward direction
         geometry_msgs::Vector3Stamped vec;
-        vec.header.frame_id = parameters.base_frame_;
+        vec.header.frame_id = parameters.hand_frame_;
         vec.vector.x = 1.0;
         stage->setDirection(vec);
         grasp->insert(std::move(stage));
@@ -113,9 +110,9 @@ bool PickTask::init(const TaskParameters& parameters)
         auto stage = std::make_unique<stages::GenerateGraspPose>("generate grasp pose");
         stage->properties().configureInitFrom(Stage::PARENT);
         stage->properties().set("marker_ns", "grasp_pose");
-        stage->setPreGraspPose(parameters.gripper_open_);
+        stage->setPreGraspPose(parameters.hand_open_pose_);
         stage->setObject(parameters.object_name_);
-        stage->setAngleDelta(M_PI / 12); // pi/12
+        stage->setAngleDelta(M_PI / 12);
         stage->setMonitoredStage(current_state_stage_);  // Hook into current state
 
         // Compute IK
@@ -144,7 +141,7 @@ bool PickTask::init(const TaskParameters& parameters)
       {
         auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
         stage->setGroup(parameters.hand_group_name_);
-        stage->setGoal(parameters.gripper_close_);
+        stage->setGoal(parameters.hand_close_pose_);
         grasp->insert(std::move(stage));
       }
 

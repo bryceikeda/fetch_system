@@ -68,7 +68,7 @@ bool WaveTask::init(const TaskParameters& parameters)
     {
       auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
       stage->setGroup(parameters.hand_group_name_);
-      stage->setGoal(parameters.gripper_open_);
+      stage->setGoal(parameters.hand_open_pose_);
       addStageToTask(std::move(stage));
     }
 
@@ -113,7 +113,7 @@ bool WaveTask::init(const TaskParameters& parameters)
     {
       auto stage = std::make_unique<stages::MoveTo>("home", sampling_planner);
       stage->setGroup(parameters.hand_group_name_);
-      stage->setGoal(parameters.arm_ready_);
+      stage->setGoal(parameters.arm_ready_pose_);
       addStageToTask(std::move(stage));
     }
 

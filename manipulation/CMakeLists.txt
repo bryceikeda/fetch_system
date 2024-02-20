@@ -153,8 +153,8 @@ add_library(tasks
    src/tasks/wipe_task.cpp
    src/tasks/pour_task.cpp
    src/tasks/dance_task.cpp
-   src/tasks/open_gripper_task.cpp
-   src/tasks/close_gripper_task.cpp
+   src/tasks/open_hand_task.cpp
+   src/tasks/close_hand_task.cpp
    src/tasks/task_base.cpp
    src/tasks/task_factory.cpp
    src/tasks/task_parameters_loader.cpp

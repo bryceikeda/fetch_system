@@ -23,10 +23,10 @@ TaskParametersLoader::loadParameters(const ros::NodeHandle& pnh_)
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "base_frame", parameters.base_frame_);
     
     // Predefined pose targets
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "gripper_open", parameters.gripper_open_);
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "gripper_close", parameters.gripper_close_);
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_ready", parameters.arm_ready_);
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_tuck", parameters.arm_tuck_);
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_open_pose", parameters.hand_open_pose_);
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_close_pose", parameters.hand_close_pose_);
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_ready_pose", parameters.arm_ready_pose_);
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_tuck_pose", parameters.arm_tuck_pose_);
     
     std::string surface_link;
     // Target object

@@ -26,12 +26,11 @@ bool TaskBase::execute()
 
 	actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction>
 
-	execute("execute_task_solution", true); execute.waitForServer();
+	execute("execute_task_solution", true); 
+    execute.waitForServer();
 
 	moveit_task_constructor_msgs::ExecuteTaskSolutionGoal execute_goal;
-
-	task_->solutions().front()->toMsg(execute_goal.solution);
-
+    getSolutionMsg(execute_goal.solution);
 	execute.sendGoalAndWait(execute_goal);
 
     moveit_msgs::MoveItErrorCodes execute_result = execute.getResult()->error_code;
@@ -80,7 +79,7 @@ bool TaskBase::plan()
     }
 
     // Publish the task solution for external consumption.
-    task_->introspection().publishAllSolutions();
+    task_->introspection().publishSolution(*task_->solutions().front());
     return true;
 }
 

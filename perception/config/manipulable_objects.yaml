@@ -1,16 +1,16 @@
-#- name: "demo_cube"
-#  id: 0
-#  frame_id: "world"
+- name: "sponge"
+  id: 0
+  frame_id: "base_link"
+  size: [0.05, 0.1, 0.02]
+#- name: "bottle"
+#  id: 0 # Provides which object identifier vision_msgs uses
+#  frame_id: "base_link"
 #  size: [0.06, 0.06, 0.06]
-- name: "bottle"
-  id: 0 # Provides which object identifier vision_msgs uses
-  frame_id: "base_link"
-  size: [0.06, 0.06, 0.06]
-- name: "glass"
-  id: 1
-  frame_id: "base_link"
-  size: [0.06, 0.06, 0.06]
-- name: "cylinder"
-  id: 2
-  frame_id: "base_link"
-  size: [0.03, 0.0, 0.2]
+#- name: "glass"
+#  id: 1
+#  frame_id: "base_link"
+#  size: [0.06, 0.06, 0.06]
+#- name: "cylinder"
+#  id: 2
+#  frame_id: "base_link"
+#  size: [0.03, 0.0, 0.2]
