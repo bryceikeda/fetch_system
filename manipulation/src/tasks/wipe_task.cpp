@@ -199,31 +199,19 @@ bool WipeTask::init(const TaskParameters& parameters)
         auto stage = std::make_unique<stages::GeneratePose>("pose above glass");
         geometry_msgs::PoseStamped p;
         p.header.frame_id = "table1";
-        p.pose.orientation.w = 1; 
-        p.pose.position.z = .7;
-        p.pose.position.x = .8;
+        p.pose.position.z = 1;
+        p.pose.position.x = -.3;
         stage->setPose(p);
         stage->properties().configureInitFrom(Stage::PARENT);
+         
+	stage->setMonitoredStage(attach_object_stage_);  // Hook into current state
 
         auto wrapper = std::make_unique<stages::ComputeIK>("pre-pour pose", std::move(stage));
         wrapper->setMaxIKSolutions(32);
         wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
         wrapper->properties().configureInitFrom(Stage::PARENT, {"eef"}); // TODO: convenience wrapper
+        wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
         addStageToTask(std::move(wrapper));
-    }
-    {
-        auto stage = std::make_unique<SerialContainer>("Cartesian Path"); 
-        stage->setProperty("group", parameters.arm_group_name_); 
-        addStageToTask(std::move(stage));
-    }
-    {
-		auto stage = std::make_unique<stages::MoveRelative>("x +0.2", cartesian_planner);
-		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
-		geometry_msgs::Vector3Stamped direction;
-		direction.header.frame_id = "base_link";
-		direction.vector.x = 0.2;
-		stage->setDirection(direction);
-		addStageToTask(std::move(stage));
     }
 
     return initTask();

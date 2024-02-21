@@ -58,7 +58,7 @@ class Manipulation
 {
 public:
   Manipulation();
-  ~Manipulation() = default;
+  ~Manipulation();
   
   void setParameters(TaskParameters& params);
   bool handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res);
@@ -70,5 +70,6 @@ public:
 private:
   TaskParameters parameters; 
   ros::NodeHandle pnh_;
+  std::unordered_map<std::string, std::unique_ptr<TaskBase>> task_plans; 
 };
 #endif

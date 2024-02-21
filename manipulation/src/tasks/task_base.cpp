@@ -56,31 +56,23 @@ void TaskBase::preempt()
     task_->preempt();
 }
 
-bool TaskBase::plan()
+moveit_msgs::MoveItErrorCodes TaskBase::plan(int max_solutions)
 {
     TASK_INFO("Searching for task solutions");
 
-    try
-    {
-        // Attempt to plan the task with a maximum of one solution.
-        task_->plan(1);
-    }
-    catch (InitStageException& e)
-    {
-        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
-        return false;
-    }
+    moveit_msgs::MoveItErrorCodes error_code = task_->plan(max_solutions);
 
-    // Check if planning was successful and at least one solution is found.
-    if (task_->numSolutions() == 0)
+    if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed: No solutions found.");
-        return false;
+        // Publish the task solution for external consumption.
+        task_->introspection().publishSolution(*task_->solutions().front());
+        TASK_INFO("Planning succeeded");
     }
-
-    // Publish the task solution for external consumption.
-    task_->introspection().publishSolution(*task_->solutions().front());
-    return true;
+    else{
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed and returned: " << error_code.val);
+    }
+    
+    return error_code;
 }
 
 // Makes specified properties available for serialization container.
