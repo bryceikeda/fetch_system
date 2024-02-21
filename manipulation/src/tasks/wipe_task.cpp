@@ -90,7 +90,7 @@ bool WipeTask::init(const TaskParameters& parameters)
           stage->properties().set("link", parameters.hand_frame_);
           stage->properties().configureInitFrom(Stage::PARENT, { "group" });
           stage->setMinMaxDistance(parameters.approach_object_min_dist_, parameters.approach_object_max_dist_);
- // Set hand forward direction
+          // Set hand forward direction
           geometry_msgs::Vector3Stamped vec;
           vec.header.frame_id = parameters.hand_frame_;
           vec.vector.x = 1.0;
@@ -150,7 +150,7 @@ bool WipeTask::init(const TaskParameters& parameters)
           attach_object_stage_ = stage.get();
           grasp->insert(std::move(stage));
         }
-/****************************************************
+        /****************************************************
       .... *               Allow collision (object support)   *
          ***************************************************/
         {
@@ -189,30 +189,112 @@ bool WipeTask::init(const TaskParameters& parameters)
         addStageToTask(std::move(grasp));
       }
     }
+    // approach object
     {
-        auto stage = std::make_unique<stages::Connect>("move to wipe", stages::Connect::GroupPlannerVector{ { parameters.arm_group_name_, sampling_planner } });
-        stage->setTimeout(5.0);
-        stage->properties().configureInitFrom(Stage::PARENT);
-        addStageToTask(std::move(stage));
-    }
-    {
-        auto stage = std::make_unique<stages::GeneratePose>("pose above glass");
-        geometry_msgs::PoseStamped p;
-        p.header.frame_id = "table1";
-        p.pose.position.z = 1;
-        p.pose.position.x = -.3;
-        stage->setPose(p);
-        stage->properties().configureInitFrom(Stage::PARENT);
-         
-	stage->setMonitoredStage(attach_object_stage_);  // Hook into current state
+      auto wipe_table = std::make_unique<SerialContainer>("Move to Wipe");
+      exposeTo(*wipe_table, { "eef", "hand", "group", "ik_frame" });
+      wipe_table->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group", "ik_frame" });
+  
+      /****************************************************
+      ---- *               Allow Collision (hand object)   *
+      ***************************************************/
+      {
+        auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,surface)");
+        stage->allowCollisions(parameters.object_name_, parameters.support_surfaces_, true);
+        attach_object_stage_ = stage.get();
+        wipe_table->insert(std::move(stage));
+      }
+      {
+          auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
+          stage->setTimeout(5.0);
+          stage->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+          stage->properties().configureInitFrom(Stage::PARENT);
+          
+          geometry_msgs::PointStamped p;
+          p.header.frame_id = "table1";
+          p.point.z = .79;
+          p.point.x = -.4;
+          stage->setGoal(p);
+          wipe_table->insert(std::move(stage));
+      }
+      {
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "left")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+        wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));
+      }
 
-        auto wrapper = std::make_unique<stages::ComputeIK>("pre-pour pose", std::move(stage));
-        wrapper->setMaxIKSolutions(32);
-        wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
-        wrapper->properties().configureInitFrom(Stage::PARENT, {"eef"}); // TODO: convenience wrapper
-        wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
-        addStageToTask(std::move(wrapper));
-    }
 
+      // {
+      //     auto stage = std::make_unique<stages::GeneratePose>("pose on table");
+      //     geometry_msgs::PoseStamped p;
+      //     p.header.frame_id = "table1";
+      //     p.pose.position.z = .79;
+      //     p.pose.position.x = -.3;
+      //     stage->setPose(p);
+      //     stage->properties().configureInitFrom(Stage::PARENT);
+          
+      //     stage->setMonitoredStage(attach_object_stage_);  // Hook into current state
+
+      //     auto wrapper = std::make_unique<stages::ComputeIK>("on table pose", std::move(stage));
+      //     wrapper->setMaxIKSolutions(8);
+      //     wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+      //     wrapper->properties().configureInitFrom(Stage::PARENT, {"eef"}); // TODO: convenience wrapper
+      //     wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
+      //     wipe_table->insert(std::move(wrapper));
+      // }
+      addStageToTask(std::move(wipe_table));
+    }
     return initTask();
+}
+
+
+std::unique_ptr<SerialContainer> WipeTask::moveDiagonal(const std::string& group, const TaskParameters& parameters, const std::string& direction) {
+	auto c = std::make_unique<SerialContainer>("Diagonal Path " + direction);
+	c->setProperty("group", group);
+
+	// create Cartesian interpolation "planner" to be used in stages
+	auto cartesian = std::make_shared<solvers::CartesianPath>();
+	// create joint interpolation "planner"
+	auto joint_interpolation = std::make_shared<solvers::JointInterpolationPlanner>();
+
+  double up = .05; 
+  double down = -.05;
+  double dir = -.05; 
+
+  if (direction == "left") {
+    dir = .05;
+  }
+
+	{
+		auto stage = std::make_unique<stages::MoveRelative>("diagonal upward", cartesian);
+		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+		geometry_msgs::Vector3Stamped direction_vec;
+		direction_vec.header.frame_id = parameters.base_frame_;
+		direction_vec.vector.x = up;
+    direction_vec.vector.y = dir;
+		stage->setDirection(direction_vec);
+		c->insert(std::move(stage));
+	}
+
+	{
+		auto stage = std::make_unique<stages::MoveRelative>("diagonal downward", cartesian);
+		stage->properties().configureInitFrom(Stage::PARENT, { "group" });
+		geometry_msgs::Vector3Stamped direction_vec;
+		direction_vec.header.frame_id = parameters.base_frame_;
+		direction_vec.vector.x = down;
+    direction_vec.vector.y = dir;
+		stage->setDirection(direction_vec);
+		c->insert(std::move(stage));
+	}
+
+	return c;
 }

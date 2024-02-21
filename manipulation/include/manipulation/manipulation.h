@@ -65,8 +65,7 @@ public:
 
   ros::ServiceServer get_manipulation_plan_service;
   ros::ServiceClient update_planning_scene_service;
-  
-  void TestPickPlace(); 
+
 private:
   TaskParameters parameters; 
   ros::NodeHandle pnh_;

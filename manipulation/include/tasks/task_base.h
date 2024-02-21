@@ -31,7 +31,7 @@ public:
   // Retrieves the joint model group for a specified group name.
   const robot_model::JointModelGroup* getJointModelGroup(const std::string& group_name);
 
-  moveit_msgs::MoveItErrorCodes plan(int max_solutions = 10);
+  moveit_msgs::MoveItErrorCodes plan(int max_solutions = 1);
   void preempt();
   bool execute();
   

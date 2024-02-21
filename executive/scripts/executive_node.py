@@ -9,10 +9,8 @@ from geometry_msgs.msg import Pose, Point, Quaternion  # Import Pose, Point, and
 from std_msgs.msg import Duration
 from moveit_msgs.msg import MoveItErrorCodes
 
-LOGNAME = "manipulation_request"
-
 def main():
-    rospy.init_node("manipulation_request")
+    rospy.init_node("executive_node")
     # Use a context manager for the spinner
     get_plan = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)  # Fix service type
     manipulation_request = ManipulationPlanRequest()
