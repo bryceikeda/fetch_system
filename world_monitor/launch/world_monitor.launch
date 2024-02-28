@@ -1,5 +1,5 @@
 <launch>
-  <arg name="yaml_path" default="$(find world_monitor)/config/static_objects.yaml"/>
+  <arg name="yaml_path" default="$(find world_monitor)/config/object_definitions.yaml"/>
 
   <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen">
     <param name="yaml_path" value="$(arg yaml_path)" />

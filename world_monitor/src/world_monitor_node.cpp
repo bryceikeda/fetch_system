@@ -14,7 +14,7 @@ main(int argc, char* argv[])
     world_monitor.planning_scene_service = nh.serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
     world_monitor.update_planning_scene_service = nh.advertiseService("/world_monitor/update_planning_scene", &WorldMonitor::updatePlanningSceneRequest, &world_monitor);
     
-    world_monitor.get_static_world_service = nh.advertiseService("/world_monitor/get_static_world", &WorldMonitor::getStaticWorldRequest, &world_monitor);
+    world_monitor.get_static_world_service = nh.advertiseService("/world_monitor/get_scene_objects", &WorldMonitor::getSceneObjectsRequest, &world_monitor);
     
     bool initialize_scene = true; 
     std::string yaml_path;
@@ -23,7 +23,7 @@ main(int argc, char* argv[])
         return 1;
     }
     
-    world_monitor.loadStaticObjects(yaml_path); 
+    world_monitor.loadObjectParameters(yaml_path); 
 
     ros::Rate loop_rate(40); 
 	while(ros::ok()){

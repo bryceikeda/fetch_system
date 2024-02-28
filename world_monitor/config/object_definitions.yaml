@@ -1,10 +1,21 @@
 - object_id: "table1"
-  header_frame_id: "base_link"
+  key: "static"
+  header_frame_id: "world"
   primitive_types: [[1]]
   primitive_dimensions: [[.913, .913, .04]]
   primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
   subframe_names: ["surface"]
   subframe_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
+  mesh_poses: []
+- object_id: "sponge"
+  key: "manipulable"
+  header_frame_id: "world"
+  primitive_types: [[1]]
+  primitive_dimensions: [[0.05, 0.1, 0.02]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
   #- name: "table2"
   #frame_id: "base_link"
   #primitive_types: [[1], [1]]

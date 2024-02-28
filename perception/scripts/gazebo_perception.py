@@ -64,7 +64,7 @@ class Perception:
                 # Load the YAML data
                 yaml_data = yaml.safe_load(file)
                 
-                objects_info = {}
+                objects_info = []
 
                 # Iterate through each object in the YAML data
                 for item in yaml_data:
@@ -73,12 +73,11 @@ class Perception:
                     id = item['id']
                     frame_id = item['frame_id']
                     size = item['size']
-                    manipulable = item['manipulable']
                     # Add object to dictionary
                     object_builder = DetectableObjectBuilder(id, frame_id, size)
                     self.object_dict[name] = object_builder
 
-                    objects_info[name] = manipulable
+                    objects_info.append(name)
 
                 rospy.set_param('/vision_info_lookup', objects_info)
 

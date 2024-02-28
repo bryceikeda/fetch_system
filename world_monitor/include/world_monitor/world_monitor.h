@@ -33,22 +33,18 @@ public:
     // PSI
     bool initializePlanningScene();
     bool updatePlanningSceneRequest(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-    bool getStaticWorldRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res);
+    bool getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res);
     bool applyPlanningScene(moveit_msgs::PlanningScene& planning_scene);
-    void addStaticObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection);
-    void addManipulableObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection);
-    void loadStaticObjects(const std::string filepath);
+    void loadObjectParameters(const std::string filepath);
 
     moveit_msgs::PlanningScene updatePlanningScene();
-    moveit_msgs::CollisionObject getManipulableObjectBasicShape(const std::string& name, const vision_msgs::Detection3D& detection); 
-    moveit_msgs::CollisionObject getManipulableObjectMesh(const std::string& name, const vision_msgs::Detection3D& detection); 
-    
+    void getObjectMesh(const std::string& name, moveit_msgs::CollisionObject& collisionObject); 
+    double computeMeshHeight(const shape_msgs::Mesh &mesh);
+
     // Object detection/tracking
     void objectDetectionsCallback(const vision_msgs::Detection3DArray::ConstPtr& msg);
     void visionInfoCallback(const vision_msgs::VisionInfo::ConstPtr& msg);
-    double computeMeshHeight(const shape_msgs::Mesh &mesh);
-    void addStaticObjectTransform(const moveit_msgs::CollisionObject& collisionObject); 
-    void addManipulableObjectTransform(const moveit_msgs::CollisionObject& collisionObject); 
+    void addObjectTransform(const moveit_msgs::CollisionObject& collisionObject); 
     void broadcastTransforms();
 
     // ROS Communication
@@ -61,8 +57,9 @@ public:
 
 private:
     vision_msgs::Detection3DArray object_detections;
-    moveit_msgs::PlanningSceneWorld static_world;
-    std::vector<std::pair<std::string, bool>> objects_info;
+    moveit_msgs::PlanningSceneWorld active_scene_objects;
+    moveit_msgs::PlanningSceneWorld scene_object_properties;
+    std::vector<std::string> objects_info;
     std::vector<geometry_msgs::TransformStamped> transformStampedArray; 
 };
 

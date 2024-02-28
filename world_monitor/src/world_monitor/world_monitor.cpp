@@ -16,21 +16,16 @@ WorldMonitor::visionInfoCallback(const vision_msgs::VisionInfo::ConstPtr& msg)
     // Assuming all manipulable objects are known, add them to object_names array
     if (msg->method == "parameter server" && objects_info.empty())
     {  
-        std::map<std::string, bool> tempDict;  
-        ros::param::get(msg->database_location, tempDict);
-        
-        for (const auto& pair : tempDict) {
-            objects_info.push_back(pair); 
-        }
+        ros::param::get(msg->database_location, objects_info);
     }
 }
 
 bool 
-WorldMonitor::getStaticWorldRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res)
+WorldMonitor::getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res)
 {
-    if (!static_world.collision_objects.empty()) 
+    if (!active_scene_objects.collision_objects.empty()) 
     {
-        res.scene.world = static_world; 
+        res.scene.world = active_scene_objects; 
         return true;
     } 
     else 
@@ -66,15 +61,14 @@ WorldMonitor::updatePlanningScene()
     moveit_msgs::PlanningScene planning_scene;
 
     for (const auto& detection : object_detections.detections) {
-        if(objects_info[detection.results[0].id].second == true){
-            moveit_msgs::CollisionObject co; 
-            co.id = objects_info[detection.results[0].id].first;
-            co.header = detection.header;
-            co.pose = detection.bbox.center;
-            co.operation = moveit_msgs::CollisionObject::MOVE;
-            planning_scene.world.collision_objects.push_back(co);
-        }
+        moveit_msgs::CollisionObject collision_object; 
+        collision_object.id = objects_info[detection.results[0].id];
+        collision_object.header = detection.header;
+        collision_object.pose = detection.bbox.center;
+        collision_object.operation = moveit_msgs::CollisionObject::MOVE;
+        planning_scene.world.collision_objects.push_back(collision_object);
     }
+
     planning_scene.is_diff = true;
     return planning_scene;
 }
@@ -101,19 +95,44 @@ bool
 WorldMonitor::initializePlanningScene()
 {
     // If there are no detections, then don't initialize the planning scene
-    if (object_detections.detections.empty() || static_world.collision_objects.empty() || objects_info.empty()) 
+    if (object_detections.detections.empty() || scene_object_properties.collision_objects.empty() || objects_info.empty()) 
     {   
         return true;
     }
+
     moveit_msgs::PlanningScene planning_scene;
     for(auto detection : object_detections.detections)
     {
-        if(objects_info[detection.results[0].id].second == false){
-            addStaticObjectToScene(planning_scene, detection);
+        for(auto& collision_object : scene_object_properties.collision_objects)
+        {
+            if(collision_object.id == objects_info[detection.results[0].id])
+            {
+    
+                // Get mesh file and add to object 
+                if(!collision_object.mesh_poses.empty())
+                {
+                    getObjectMesh(collision_object.id, collision_object);
+                }
+
+                // Static objects are colored blue
+                if(collision_object.type.key == "static")
+                {
+                    moveit_msgs::ObjectColor color;
+                    color.id = collision_object.id;
+                    color.color.b = 1.0;
+                    color.color.a = 1.0;
+                    planning_scene.object_colors.push_back(color);
+                }
+                
+                collision_object.pose = detection.bbox.center;
+                collision_object.operation = moveit_msgs::CollisionObject::ADD;
+                planning_scene.world.collision_objects.push_back(collision_object);
+                active_scene_objects.collision_objects.push_back(collision_object);
+                addObjectTransform(collision_object); 
+                ROS_INFO_STREAM("[world_monitor_node] Adding object to scene: " << collision_object.id);
+                break;
+            }
         }
-        else{
-            addManipulableObjectToScene(planning_scene, detection);
-        } 
     }
 
     planning_scene.is_diff = true;
@@ -131,32 +150,7 @@ WorldMonitor::initializePlanningScene()
 }
 
 void 
-WorldMonitor::addManipulableObjectTransform(const vision_msgs::Detection3D& detection)
-{
-    geometry_msgs::TransformStamped transform; 
-    transform.header.frame_id = collisionObject.header.frame_id;
-    transform.child_frame_id = collisionObject.id;
-    transform.transform.translation.x = collisionObject.pose.position.x;  
-    transform.transform.translation.y = collisionObject.pose.position.y;  
-    transform.transform.translation.z = collisionObject.pose.position.z;
-    transform.transform.rotation = collisionObject.pose.orientation; 
-    transformStampedArray.push_back(transform); 
-
-    for(int i = 0; i < collisionObject.subframe_names.size(); i++)
-    {
-        geometry_msgs::TransformStamped transform; 
-        transform.header.frame_id = collisionObject.id;
-        transform.child_frame_id = collisionObject.subframe_names[i];
-        transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;  
-        transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;  
-        transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;  
-        transform.transform.rotation = collisionObject.subframe_poses[i].orientation; 
-        transformStampedArray.push_back(transform); 
-    }
-}
-
-void 
-WorldMonitor::addStaticObjectTransform(const moveit_msgs::CollisionObject& collisionObject)
+WorldMonitor::addObjectTransform(const moveit_msgs::CollisionObject& collisionObject)
 {
     geometry_msgs::TransformStamped transform; 
     transform.header.frame_id = collisionObject.header.frame_id;
@@ -191,84 +185,9 @@ WorldMonitor::broadcastTransforms()
 }
 
 void
-WorldMonitor::addStaticObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection) 
-{
-    // Add support surfaces that are blue
-    for (auto static_object : static_world.collision_objects) {
-        if(static_object.id == objects_info[detection.results[0].id].first){ 
-            moveit_msgs::ObjectColor color;
-            color.id = static_object.id;
-            color.color.b = 1.0;
-            color.color.a = 1.0;
-            static_object.pose = detection.bbox.center;
-            static_object.operation = moveit_msgs::CollisionObject::ADD;
-            planning_scene.object_colors.push_back(color);
-            planning_scene.world.collision_objects.push_back(static_object);
-            addStaticObjectTransform(static_object); 
-            ROS_INFO_STREAM("[world_monitor_node] Adding support static object to scene: " << static_object.id);
-            break; 
-        }
-    }
-}
-
-void 
-WorldMonitor::addManipulableObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection) 
-{
-    std::string name = objects_info[detection.results[0].id].first;
-
-    // Bottle and glass are both meshes        
-    if (name == "bottle" || name == "glass"){
-        planning_scene.world.collision_objects.push_back(getManipulableObjectMesh(name, detection));
-    }
-    else
-    {
-        // All other objects are boxes or cylinders
-        planning_scene.world.collision_objects.push_back(getManipulableObjectBasicShape(name, detection));
-    }
-    
-    
-
-    ROS_INFO_STREAM("[world_monitor_node] Adding manipulable object to scene: " << name);
-}
-
-moveit_msgs::CollisionObject
-WorldMonitor::getManipulableObjectBasicShape(const std::string& name, const vision_msgs::Detection3D& detection)
-{
-    // Load just a box primitive because bounding boxes are just that. 
-    moveit_msgs::CollisionObject co;
-    co.header.frame_id = detection.header.frame_id;
-    co.id = name;  
-    co.pose = detection.bbox.center;
-
-    shape_msgs::SolidPrimitive solid_primitive;
-    
-    if (name == "cylinder"){
-        solid_primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-        solid_primitive.dimensions = {detection.bbox.size.z, detection.bbox.size.x/2}; 
-    }
-    else{
-        solid_primitive.type = shape_msgs::SolidPrimitive::BOX; 
-        solid_primitive.dimensions = {detection.bbox.size.x, detection.bbox.size.y, detection.bbox.size.z};
-    }
-
-    co.primitives.push_back(solid_primitive);
-
-    geometry_msgs::Pose primitive_pose;
-    primitive_pose.orientation.w = 1;
-    co.primitive_poses.push_back(primitive_pose);
-    
-    return co; 
-}
-
-moveit_msgs::CollisionObject
-WorldMonitor::getManipulableObjectMesh(const std::string& name, const vision_msgs::Detection3D& detection)
+WorldMonitor::getObjectMesh(const std::string& name, moveit_msgs::CollisionObject& collision_object)
 {
     // Load meshes of objects into the scene
-    moveit_msgs::CollisionObject co;
-    co.id = name; 
-    co.header = detection.header;
-    co.pose = detection.bbox.center;
-
     std::string resource = "package://world_monitor/meshes/" + name + ".stl";
 
     // load mesh
@@ -277,16 +196,12 @@ WorldMonitor::getManipulableObjectMesh(const std::string& name, const vision_msg
     shapes::ShapeMsg shape_msg;
     shapes::constructMsgFromShape(shape, shape_msg);
  
-    co.meshes.resize(1);
-    co.meshes[0] = boost::get<shape_msgs::Mesh>(shape_msg);
+    collision_object.meshes.resize(1);
+    collision_object.meshes[0] = boost::get<shape_msgs::Mesh>(shape_msg);
 
-    co.mesh_poses.resize(1);
-    co.mesh_poses[0].orientation.w = 1.0;
-    co.mesh_poses[0].position.z += computeMeshHeight(co.meshes[0]) / 2 + 0.002;
-
-    co.operation = moveit_msgs::CollisionObject::ADD;
-    
-    return co; 
+    collision_object.mesh_poses.resize(1);
+    collision_object.mesh_poses[0].orientation.w = 1.0;
+    collision_object.mesh_poses[0].position.z += computeMeshHeight(collision_object.meshes[0]) / 2 + 0.002;
 }
 
 double 
@@ -297,7 +212,7 @@ WorldMonitor::computeMeshHeight(const shape_msgs::Mesh &mesh) {
 }
 
 void
-WorldMonitor::loadStaticObjects(std::string filepath)
+WorldMonitor::loadObjectParameters(std::string filepath)
 {
     // Read configuration from YAML file
     YAML::Node config = YAML::LoadFile(filepath);
@@ -315,9 +230,9 @@ WorldMonitor::loadStaticObjects(std::string filepath)
             continue;
         }
 
-
         collisionObject.id = entry["object_id"].as<std::string>();
         collisionObject.header.frame_id = entry["header_frame_id"].as<std::string>();
+        collisionObject.type.key = entry["key"].as<std::string>();
 
         // Get information arrays from the entry
         const auto& primitiveTypes = entry["primitive_types"];
@@ -326,8 +241,9 @@ WorldMonitor::loadStaticObjects(std::string filepath)
        
         const auto& subframeNames = entry["subframe_names"].as<std::vector<std::string>>();
         const auto& subframePoses = entry["subframe_poses"];
+        const auto& meshPoses = entry["mesh_poses"];
 
-        // Iterate over each primitive in the entry
+        // Primitives
         for (std::size_t i = 0; i < primitiveTypes.size(); ++i) {
             // Assuming there is only one type and pose per primitive
             shape_msgs::SolidPrimitive primitive;
@@ -348,6 +264,21 @@ WorldMonitor::loadStaticObjects(std::string filepath)
             
         }
         
+        // Mesh Poses
+        for (std::size_t i = 0; i < meshPoses.size(); ++i) {
+            geometry_msgs::Pose meshPose;
+            meshPose.position.x = meshPoses[i][0].as<double>();
+            meshPose.position.y = meshPoses[i][1].as<double>();
+            meshPose.position.z = meshPoses[i][2].as<double>();
+            meshPose.orientation.x = meshPoses[i][3].as<double>();
+            meshPose.orientation.y = meshPoses[i][4].as<double>();
+            meshPose.orientation.z = meshPoses[i][5].as<double>();
+            meshPose.orientation.w = meshPoses[i][6].as<double>(); 
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.subframe_poses.push_back(meshPose);
+        }
+
+        // Subframes
         for (std::size_t i = 0; i < subframeNames.size(); ++i) {
             geometry_msgs::Pose subframePose;
             subframePose.position.x = subframePoses[i][0].as<double>();
@@ -362,6 +293,6 @@ WorldMonitor::loadStaticObjects(std::string filepath)
             collisionObject.subframe_poses.push_back(subframePose);
         }
         // Add the CollisionObject to the list
-        static_world.collision_objects.push_back(collisionObject);
+        scene_object_properties.collision_objects.push_back(collisionObject);
     }
 }
