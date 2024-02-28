@@ -69,7 +69,26 @@ bool PlaceTask::init(const TaskParameters& parameters)
       stage->properties().configureInitFrom(Stage::PARENT);
       addStageToTask(std::move(stage));
     }
+    auto fallbacks = std::make_unique<Fallbacks>("move to other side");
+  
+    auto place_poses = parameters.place_poses_.find(parameters.support_surfaces_[0])->second;
+    geometry_msgs::Pose place_pose; 
 
+    // Get an open place pose and if the object was placed somewhere else then remove it
+    for(auto poses : place_poses)
+    {
+      if(poses.second == "")
+      {
+        place_pose = place_poses[0].first;
+        poses.second = parameters.object_name_;
+      }
+      else if(poses.second == parameters.object_name_)
+      {
+        poses.second = "";
+      }
+    }
+
+    for(auto grasp_frame_transform : parameters.grasp_frame_transforms_)
     {
       auto place = std::make_unique<SerialContainer>("place object");
       exposeTo(*place, { "eef", "hand", "group" });
@@ -103,25 +122,13 @@ bool PlaceTask::init(const TaskParameters& parameters)
         stage->properties().set("marker_ns", "place_pose");
         stage->setObject(parameters.object_name_);
 
-        moveit_msgs::CollisionObject collision_object;
-        moveit::planning_interface::PlanningSceneInterface psi;
-        
-        collision_object = psi.getAttachedObjects({ parameters.object_name_ })[parameters.object_name_].object;
-
         // Set target pose
         geometry_msgs::PoseStamped p;
-        p.header.frame_id = parameters.base_frame_;  // collision_object.header.frame_id;  // object_reference_frame was used before
-        p.pose = parameters.place_pose_;
-
-        // Take half the objects height and add that to the z position to properly place the object
-        if (collision_object.primitives[0].type == shape_msgs::SolidPrimitive::BOX)
-        {
-            p.pose.position.z += 0.5 * collision_object.primitives[0].dimensions[2] + parameters.place_surface_offset_;
-        }
-        else
-        {
-          p.pose.position.z += 0.5 * collision_object.primitives[0].dimensions[0] + parameters.place_surface_offset_;
-        }
+        
+        p.header.frame_id = parameters.support_surfaces_[0];  // collision_object.header.frame_id;  // object_reference_frame was used before
+        p.pose = place_pose; 
+        p.pose.orientation.w = 1; 
+        p.pose.position.z = getHeightOffsetForSurface(parameters.object_name_, parameters.support_surfaces_[0], parameters.place_surface_offset_);
 
         stage->setPose(p);
         stage->setMonitoredStage(current_state_stage_);
@@ -129,7 +136,7 @@ bool PlaceTask::init(const TaskParameters& parameters)
         // Compute IK
         auto wrapper = std::make_unique<stages::ComputeIK>("place pose IK", std::move(stage));
         wrapper->setMaxIKSolutions(8);
-        wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+        wrapper->setIKFrame(grasp_frame_transform.second, parameters.hand_frame_);
         wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
         wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
         place->insert(std::move(wrapper));
@@ -180,8 +187,9 @@ bool PlaceTask::init(const TaskParameters& parameters)
       }
 
       // Add place container to task
-      addStageToTask(std::move(place));
+      fallbacks->insert(std::move(place));
     }
+    addStageToTask(std::move(fallbacks));
       /******************************************************
      *                                                    *
      *          Move to Home                              *

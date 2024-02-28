@@ -115,7 +115,7 @@ bool WipeTask::init(const TaskParameters& parameters)
           auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
           wrapper->setMaxIKSolutions(8);
           wrapper->setMinSolutionDistance(1.0);
-          wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+          wrapper->setIKFrame(parameters.grasp_frame_transforms_.find("vertical_grasp_transform")->second, parameters.hand_frame_);
           wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
           wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
           grasp->insert(std::move(wrapper));
@@ -205,17 +205,27 @@ bool WipeTask::init(const TaskParameters& parameters)
         wipe_table->insert(std::move(stage));
       }
       {
-          auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
-          stage->setTimeout(5.0);
-          stage->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
-          stage->properties().configureInitFrom(Stage::PARENT);
-          
-          geometry_msgs::PointStamped p;
-          p.header.frame_id = "table1";
-          p.point.z = .79;
-          p.point.x = -.4;
-          stage->setGoal(p);
-          wipe_table->insert(std::move(stage));
+        auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
+        stage->setTimeout(5.0);
+        stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical_frame_transform")->second, parameters.hand_frame_);
+        stage->properties().configureInitFrom(Stage::PARENT);
+        
+        geometry_msgs::PoseStamped place_pose;
+        place_pose.header.frame_id = parameters.support_surfaces_[0];
+        
+        // If place pose is set, use it, if not, generate one
+        if(parameters.place_pose_.position.z != 0.0)
+        {
+          place_pose.pose = parameters.place_pose_;
+          place_pose.pose.position.z += parameters.place_surface_offset_;
+          stage->setGoal(place_pose);
+        }
+        else
+        {
+          place_pose.pose.position.z = getHeightOffsetForSurface(parameters.object_name_, parameters.support_surfaces_[0], parameters.place_surface_offset_);
+          stage->setGoal(place_pose);
+        }
+        wipe_table->insert(std::move(stage));
       }
       {
         wipe_table->insert(std::move(moveDiagonal(parameters.arm_group_name_, parameters, "right")));

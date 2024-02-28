@@ -35,7 +35,7 @@ class ModelStatesPublisher:
                     position = item['position']
                     
                     if not name:
-                        rospyu.logerr(f"[simulator] Empty object name detected.")
+                        rospy.logerr(f"[simulator] Empty object name detected.")
 
                     if len(position) < 6:
                         rospy.logerr(f"[simulator] Error reading pose for {name}")

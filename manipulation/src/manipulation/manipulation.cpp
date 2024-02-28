@@ -5,6 +5,7 @@ using namespace manipulation;
 
 Manipulation::Manipulation()
 {
+
 }
 
 Manipulation::~Manipulation()
@@ -19,22 +20,22 @@ void
 Manipulation::setParameters(TaskParameters& params)
 {
     parameters = params; 
-}
+} 
 
 // Service handler that receives message from executive to plan a task
 bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res)
 {    
     std_srvs::Trigger srv; 
     
-    ROS_INFO("[manipulation_node] Request: Update Planning Scene");
+    // ROS_INFO("[manipulation_node] Request: Update Planning Scene");
     
-    if (update_planning_scene_service.call(srv)) {
-        ROS_INFO("[manipulation_node] Response: Planning Scene updated");
-    } else {
-        res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-        ROS_ERROR("[manipulation_node] Response: Planning Scene failed to update for %s", req.manipulation_plan_request.task_name.c_str());
-        return true;  
-    }
+    // if (update_planning_scene_service.call(srv)) {
+    //     ROS_INFO("[manipulation_node] Response: Planning Scene updated");
+    // } else {
+    //     res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    //     ROS_ERROR("[manipulation_node] Response: Planning Scene failed to update for %s", req.manipulation_plan_request.task_name.c_str());
+    //     return true;  
+    // }
 
     parameters.place_pose_ = req.manipulation_plan_request.place_pose;
 

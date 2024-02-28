@@ -8,6 +8,11 @@
 #include <moveit/task_constructor/solvers/cartesian_path.h>
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 
+// MoveIt
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
 using namespace moveit::task_constructor; 
 
 class TaskBase
@@ -30,6 +35,8 @@ public:
  
   // Retrieves the joint model group for a specified group name.
   const robot_model::JointModelGroup* getJointModelGroup(const std::string& group_name);
+
+  double getHeightOffsetForSurface(const std::string& object_name, const std::string& place_surface_name, const double place_surface_offset);
 
   moveit_msgs::MoveItErrorCodes plan(int max_solutions = 1);
   void preempt();

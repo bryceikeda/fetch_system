@@ -40,6 +40,7 @@
 #include <manipulation/ManipulationPlanResponse.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <std_srvs/Trigger.h>
+#include <geometry_msgs/PoseArray.h>
 
 #include <tasks/task_base.h>
 #include <tasks/task_factory.h>

@@ -9,46 +9,59 @@ from geometry_msgs.msg import Pose, Point, Quaternion  # Import Pose, Point, and
 from std_msgs.msg import Duration
 from moveit_msgs.msg import MoveItErrorCodes
 
+
+#  ManipulationPlanRequest.PICK
+#  ManipulationPlanRequest.PLACE
+#  ManipulationPlanRequest.POUR
+#  ManipulationPlanRequest.WIPE
+#  ManipulationPlanRequest.OPEN_HAND
+#  ManipulationPlanRequest.CLOSE_HAND
+#  ManipulationPlanRequest.WAVE
+#  ManipulationPlanRequest.DANCE
+
+def build_action_request(task_type, object_name = "", support_surface = "", description = "", place_pose = Pose()):
+    req = ManipulationPlanRequest()
+    req.task_type = task_type
+    req.object_name = object_name
+    req.support_surfaces = support_surface
+    req.task_name = description
+    req.place_pose = place_pose
+    return req
+
 def main():
     rospy.init_node("executive_node")
     # Use a context manager for the spinner
-    get_plan = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)  # Fix service type
-    manipulation_request = ManipulationPlanRequest()
-    manipulation_request.task_type = ManipulationPlanRequest.WIPE
-    manipulation_request.object_name = "sponge"
-    manipulation_request.support_surfaces = ["table1"]
-    manipulation_request.task_name = "Wipe Task"
-
-    # Use dictionary-style initialization for Pose
-    manipulation_request.place_pose = Pose(
-        position=Point(0.8, 0.11, 0.8),
-        orientation=Quaternion(0, 0, 0, 1.0)
-    )
-
-    response = get_plan(manipulation_request)
-
+    manipulation_plan_service = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)  # Fix service type
+    
     # Use a more descriptive variable name for the action client
-    execute_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
-    execute_client.wait_for_server()
+    plan_executer_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
+    plan_executer_client.wait_for_server()
 
-    execute_goal = ExecuteTaskSolutionGoal()
+    action_plan = [ 
+        build_action_request(ManipulationPlanRequest.PICK, "sponge", "table1", "Pick sponge"),
+        build_action_request(ManipulationPlanRequest.PLACE, "sponge", "table1", "Place sponge")
+    ]
+        
+    plan_to_execute = ExecuteTaskSolutionGoal()
 
-    if response:
-        rospy.loginfo("Plan received, executing plan")
-        execute_goal.solution = response.manipulation_plan_response.solution
-        execute_client.send_goal_and_wait(execute_goal)
-        execute_result = execute_client.get_result().error_code
-        if execute_result.val == MoveItErrorCodes.SUCCESS:
-            rospy.loginfo("Execution Success")
-            return 0
+    for task in action_plan:
+        response = manipulation_plan_service(task)
+
+        if response:
+            rospy.loginfo("Plan received, executing plan")
+            plan_to_execute.solution = response.manipulation_plan_response.solution
+            plan_executer_client.send_goal_and_wait(plan_to_execute)
+            
+            result = plan_executer_client.get_result().error_code
+            
+            if result.val == MoveItErrorCodes.SUCCESS:
+                rospy.loginfo("Execution Success, moving on to the next task")
+            else:
+                rospy.logerror("Execution Failed, exiting")
+                return 1
         else:
-            rospy.loginfo("Execution Failed")
+            rospy.logerror("Failed to call service get_manipulation_plan, exiting")
             return 1
-    else:
-        rospy.logerror("Failed to call service get_manipulation_plan")
-        return 1
-
-
 
 if __name__ == "__main__":
     main()

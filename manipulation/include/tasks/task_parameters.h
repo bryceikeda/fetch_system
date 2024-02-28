@@ -12,6 +12,8 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseArray.h>
+#include <unordered_map> 
 
 struct TaskParameters
 {
@@ -35,10 +37,12 @@ struct TaskParameters
   std::string object_name_;
 
   // Pick metrics
-  Eigen::Isometry3d grasp_frame_transform_;
+  std::unordered_map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;
+
+  geometry_msgs::Pose place_pose_;
 
   // Place metrics
-  geometry_msgs::Pose place_pose_;
+  std::unordered_map<std::string, std::vector<std::pair<geometry_msgs::Pose, std::string>> > place_poses_;
 
   // Pick and Place Metrics
   double approach_object_min_dist_;
