@@ -42,19 +42,33 @@ TaskParametersLoader::loadParameters(const ros::NodeHandle& pnh_)
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "pick_object", parameters.object_name_);
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "place_pose", parameters.place_pose_);
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "object_offset", parameters.object_offset_);
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "transform_orientation", transform_orientation);
     
-    // Should do this better at some point
-    if(transform_orientation == 0){
-      rosparam_shortcuts::convertDoublesToEigen(LOGNAME, horizontal_frame_transform ,parameters.grasp_frame_transform_);
-    }
-    else if(transform_orientation == 1){
-      rosparam_shortcuts::convertDoublesToEigen(LOGNAME, vertical_frame_transform ,parameters.grasp_frame_transform_);
-    }
-    else{
-      rosparam_shortcuts::convertDoublesToEigen(LOGNAME, diagonal_frame_transform ,parameters.grasp_frame_transform_);
-    }
-    
+    // Get the different grasp orientations for the robot
+    Eigen::Isometry3d horizontal_frame_transform; 
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "horizontal_frame_transform", horizontal_frame_transform);
+    parameters.grasp_frame_transforms_["horizontal_frame_transform"] = horizontal_frame_transform;
+    Eigen::Isometry3d vertical_frame_transform; 
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "vertical_frame_transform", vertical_frame_transform);
+    parameters.grasp_frame_transforms_["vertical_frame_transform"] = vertical_frame_transform;
+    Eigen::Isometry3d diagonal_frame_transform; 
+    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "diagonal_frame_transform", diagonal_frame_transform);
+    parameters.grasp_frame_transforms_["diagonal_frame_transform"] = diagonal_frame_transform;
+
+    // Add Place Poses
+    geometry_msgs::Pose pose; 
+    std::string surface_name = "table1";
+    std::vector<std::pair<geometry_msgs::Pose, std::string>> place_poses;
+    pose.position.x = -.3;
+    pose.position.y = .1;
+    pose.orientation.w = 1.0; 
+    place_poses.push_back(std::make_pair(pose, ""));
+    pose.position.x = -.3;
+    pose.position.y = 0.0;
+    pose.orientation.w = 1.0; 
+    place_poses.push_back(std::make_pair(pose, ""));
+    parameters.place_poses_[surface_name] = place_poses;
+
+  
     rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 

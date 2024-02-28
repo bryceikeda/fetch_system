@@ -23,6 +23,7 @@
 #include <moveit/task_constructor/stages/move_to.h>
 #include <moveit/task_constructor/stages/pick.h>
 #include <moveit/task_constructor/stages/predicate_filter.h>
+#include <moveit/task_constructor/solvers/joint_interpolation.h>
 #include <moveit/task_constructor/solvers/cartesian_path.h>
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
@@ -48,6 +49,7 @@ public:
   WipeTask(const std::string& task_name);
   ~WipeTask() = default;
   bool init(const TaskParameters& parameters);
+  std::unique_ptr<SerialContainer> moveDiagonal(const std::string& group, const TaskParameters& parameters, const std::string& direction);
 };
 
 #endif

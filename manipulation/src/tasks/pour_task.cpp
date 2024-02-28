@@ -244,7 +244,7 @@ bool PourTask::init(const TaskParameters& parameters)
     auto wrapper = std::make_unique<stages::ComputeIK>("pre-pour pose", std::move(stage));
     wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "hand", "group", "ik_frame"});//
     wrapper->setMaxIKSolutions(8);
-    wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+    wrapper->setIKFrame(parameters.grasp_frame_transforms_.find("horizontal_grasp_transform")->second, parameters.hand_frame_);
     // TODO adding this will initialize "target_pose" which is internal (or
     // isn't it?)
     // wrapper->properties().configureInitFrom(Stage::PARENT);
@@ -308,7 +308,7 @@ bool PourTask::init(const TaskParameters& parameters)
           // Compute IK
           auto wrapper = std::make_unique<stages::ComputeIK>("place pose IK", std::move(stage));
           wrapper->setMaxIKSolutions(8);
-          wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+          wrapper->setIKFrame(parameters.grasp_frame_transforms_.find("horizontal_grasp_transform")->second, parameters.hand_frame_);
           wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
           wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
           place->insert(std::move(wrapper));

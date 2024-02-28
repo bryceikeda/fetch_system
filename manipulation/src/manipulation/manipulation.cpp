@@ -5,97 +5,37 @@ using namespace manipulation;
 
 Manipulation::Manipulation()
 {
+
+}
+
+Manipulation::~Manipulation()
+{
+  for(auto& task : task_plans)
+  {
+    task.second.reset();
+  }
 }
 
 void 
 Manipulation::setParameters(TaskParameters& params)
 {
     parameters = params; 
-}
-
-void Manipulation::TestPickPlace()
-{
-    parameters.task_type_ = manipulation::ManipulationPlanRequest::PICK;
-
-    ROS_INFO_STREAM(parameters.place_pose_ << "\n" << parameters.object_name_);
-
-
-    auto pick = std::unique_ptr<TaskBase>(TaskFactory::createTask(manipulation::ManipulationPlanRequest::PICK, "pick"));
-
-    if (!pick->init(parameters))
-    {
-      ROS_INFO_NAMED(LOGNAME, "[manipulation node] Initialization failed");
-      return;
-    }
-
-    if (pick->plan())
-    {
-        ROS_INFO_NAMED(LOGNAME, "[manipulation node] Planning succeded");
-        ros::Duration(3.0).sleep();
-
-        if (pick->execute())
-        {
-          ROS_INFO_NAMED(LOGNAME, "[manipulation node] Execution complete");
-        }
-        else
-        {
-           ROS_INFO_NAMED(LOGNAME, "[manipulation node] Execution failed");
-        }
-    }
-    else
-    {
-      ROS_INFO_NAMED(LOGNAME, "[manipulation node] Planning failed");
-    }
-    
-    parameters.task_type_ = manipulation::ManipulationPlanRequest::PICK;
-
-    ROS_INFO_STREAM(parameters.place_pose_ << "\n" << parameters.object_name_);
-
-
-    auto place = std::unique_ptr<TaskBase>(TaskFactory::createTask(manipulation::ManipulationPlanRequest::PLACE, "place"));
-
-   
-    if (!place->init(parameters))
-    {
-      ROS_INFO_NAMED(LOGNAME, "Initialization failed");
-      return;
-    }
-
-    if (place->plan())
-    {
-        ROS_INFO_NAMED(LOGNAME, "Planning succeded");
-        ros::Duration(3.0).sleep();
-
-        if (place->execute())
-        {
-          ROS_INFO_NAMED(LOGNAME, "Execution complete");
-        }
-        else
-        {
-           ROS_INFO_NAMED(LOGNAME, "Execution failed");
-        }
-    }
-    else
-    {
-      ROS_INFO_NAMED(LOGNAME, "Planning failed");
-    }
-
-}
+} 
 
 // Service handler that receives message from executive to plan a task
 bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res)
 {    
     std_srvs::Trigger srv; 
     
-    ROS_INFO("[manipulation_node] Request: Update Planning Scene");
+    // ROS_INFO("[manipulation_node] Request: Update Planning Scene");
     
-    if (update_planning_scene_service.call(srv)) {
-        ROS_INFO("[manipulation_node] Response: Planning Scene updated");
-    } else {
-        res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-        ROS_ERROR("[manipulation_node] Response: Planning Scene failed to update for %s", req.manipulation_plan_request.task_name.c_str());
-        return true;  
-    }
+    // if (update_planning_scene_service.call(srv)) {
+    //     ROS_INFO("[manipulation_node] Response: Planning Scene updated");
+    // } else {
+    //     res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    //     ROS_ERROR("[manipulation_node] Response: Planning Scene failed to update for %s", req.manipulation_plan_request.task_name.c_str());
+    //     return true;  
+    // }
 
     parameters.place_pose_ = req.manipulation_plan_request.place_pose;
 
@@ -111,23 +51,23 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
         parameters.support_surfaces_.push_back(str); 
     }
 
-    auto task = TaskFactory::createTask(parameters.task_type_, task_name.c_str());
+    task_plans[task_name] = TaskFactory::createTask(parameters.task_type_, task_name.c_str());
     
-    if (!task->init(parameters))
+    // Return failure if initialization fails
+    if (!task_plans[task_name]->init(parameters))
     {
       res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE; 
       return true; 
     }
 
-    if (!task->plan())
+    // Get if planning suceeded or failed
+    res.manipulation_plan_response.error_code = task_plans[task_name]->plan();
+    
+    // Only add the solution if planning succeeded
+    if(res.manipulation_plan_response.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-      res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED; 
-      return true; 
+      task_plans[task_name]->getSolutionMsg(res.manipulation_plan_response.solution);   
     }
-
-    task->getSolutionMsg(res.manipulation_plan_response.solution); 
-   
-    res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
 
     return true;
 }   

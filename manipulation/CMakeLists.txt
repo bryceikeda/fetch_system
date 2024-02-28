@@ -180,17 +180,6 @@ add_executable(${PROJECT_NAME}_node src/manipulation_node.cpp)
 ## same as for the library above
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(pick_place_test src/pick_place_test.cpp)
-add_dependencies(pick_place_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(pick_place_test
-    manipulation
-    tasks
- ${catkin_LIBRARIES}
-)
-
-
-
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}

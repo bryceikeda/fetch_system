@@ -77,8 +77,9 @@ bool PickTask::init(const TaskParameters& parameters)
       stage->properties().configureInitFrom(Stage::PARENT);
       addStageToTask(std::move(stage));
     }
+    auto fallbacks = std::make_unique<Fallbacks>("Grasp an object");
 
-    // approach object
+    for(auto grasp_frame_transform : parameters.grasp_frame_transforms_)
     {
       auto grasp = std::make_unique<SerialContainer>("pick object");
       exposeTo(*grasp, { "eef", "hand", "group", "ik_frame" });
@@ -86,7 +87,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
 
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::MoveRelative>("approach object", cartesian_planner);
         stage->properties().set("marker_ns", "approach_object");
@@ -104,7 +105,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     ---- *               Generate Grasp Pose                *
-       ***************************************************/
+      ***************************************************/
       {
         // Sample grasp pose
         auto stage = std::make_unique<stages::GenerateGraspPose>("generate grasp pose");
@@ -119,7 +120,7 @@ bool PickTask::init(const TaskParameters& parameters)
         auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
         wrapper->setMaxIKSolutions(8);
         wrapper->setMinSolutionDistance(1.0);
-        wrapper->setIKFrame(parameters.grasp_frame_transform_, parameters.hand_frame_);
+        wrapper->setIKFrame(grasp_frame_transform.second, parameters.hand_frame_);
         wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
         wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
         grasp->insert(std::move(wrapper));
@@ -127,17 +128,17 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     ---- *               Allow Collision (hand object)   *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (hand,object)");
         stage->allowCollisions(parameters.object_name_, getLinkModelNamesWithCollisionGeometry(parameters.hand_group_name_),
-                               true);
+                              true);
         grasp->insert(std::move(stage));
       }
 
       /****************************************************
     ---- *               Close Hand                      *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
         stage->setGroup(parameters.hand_group_name_);
@@ -147,7 +148,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     .... *               Attach Object                      *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("attach object");
         stage->attachObject(parameters.object_name_, parameters.hand_frame_);
@@ -157,7 +158,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     .... *               Allow collision (object support)   *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
         stage->allowCollisions({ parameters.object_name_ }, parameters.support_surfaces_, true);
@@ -166,7 +167,7 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     .... *               Lift object                        *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::MoveRelative>("lift object", cartesian_planner);
         stage->properties().configureInitFrom(Stage::PARENT, { "group" });
@@ -184,15 +185,15 @@ bool PickTask::init(const TaskParameters& parameters)
 
       /****************************************************
     .... *               Forbid collision (object support)  *
-       ***************************************************/
+      ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (object,surface)");
         stage->allowCollisions({ parameters.object_name_ }, parameters.support_surfaces_, false);
         grasp->insert(std::move(stage));
       }
-
-      addStageToTask(std::move(grasp));
+      fallbacks->insert(std::move(grasp));
     }
+    addStageToTask(std::move(fallbacks));
   }
 
   return initTask();

@@ -16,6 +16,58 @@ TaskBase::~TaskBase()
 
 }
 
+double
+TaskBase::getHeightOffsetForSurface(const std::string& object_name, const std::string& place_surface_name, const double place_surface_offset)
+{
+    moveit::planning_interface::PlanningSceneInterface psi;
+    moveit_msgs::CollisionObject place_surface_co = psi.getObjects()[place_surface_name];
+    moveit_msgs::CollisionObject object_co = psi.getAttachedObjects({ object_name })[object_name].object;
+    
+    double place_offset_from_surface_origin = 0.0;
+
+    // Return and empty message if surface can't be found
+    if (place_surface_co.primitives.empty() && place_surface_co.meshes.empty())
+    {
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Place surface with id '" << object_name << "' cannot be found");
+        return 0;
+    }
+    
+    // Return and empty message if object not attached
+    if (object_co.primitives.empty() && object_co.meshes.empty())
+    {
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Object with id '" << object_name << "' is not attached, so it cannot be placed");
+        return 0;
+    }
+
+    // Get the offset of the place surface
+    if(place_surface_co.primitives[0].type == shape_msgs::SolidPrimitive::BOX)
+    {
+        // Whole surface object origin -> center of surface collision object + half the surface collision object hight
+        place_offset_from_surface_origin += place_surface_co.primitive_poses[0].position.z + 0.5 * place_surface_co.primitives[0].dimensions[2];
+    }
+    else
+    {
+        place_offset_from_surface_origin += 0.5 * place_surface_co.primitives[0].dimensions[0];
+    }
+
+    // Get the offset of the object
+    if(!object_co.meshes.empty())
+    {
+        place_offset_from_surface_origin += place_surface_offset;
+    }
+    else if(object_co.primitives[0].type == shape_msgs::SolidPrimitive::BOX)
+    {
+        place_offset_from_surface_origin += 0.5 * object_co.primitives[0].dimensions[2] + place_surface_offset;
+    }
+    else
+    {
+        place_offset_from_surface_origin += 0.5 * object_co.primitives[0].dimensions[0] + place_surface_offset;
+    }
+
+    return place_offset_from_surface_origin;
+}
+
+
 // Executes the planned task trajectory.
 bool TaskBase::execute()
 {
@@ -56,31 +108,23 @@ void TaskBase::preempt()
     task_->preempt();
 }
 
-bool TaskBase::plan()
+moveit_msgs::MoveItErrorCodes TaskBase::plan(int max_solutions)
 {
     TASK_INFO("Searching for task solutions");
 
-    try
-    {
-        // Attempt to plan the task with a maximum of one solution.
-        task_->plan(1);
-    }
-    catch (InitStageException& e)
-    {
-        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
-        return false;
-    }
+    moveit_msgs::MoveItErrorCodes error_code = task_->plan(max_solutions);
 
-    // Check if planning was successful and at least one solution is found.
-    if (task_->numSolutions() == 0)
+    if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed: No solutions found.");
-        return false;
+        // Publish the task solution for external consumption.
+        task_->introspection().publishSolution(*task_->solutions().front());
+        TASK_INFO("Planning succeeded");
     }
-
-    // Publish the task solution for external consumption.
-    task_->introspection().publishSolution(*task_->solutions().front());
-    return true;
+    else{
+        ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Planning failed and returned: " << error_code.val);
+    }
+    
+    return error_code;
 }
 
 // Makes specified properties available for serialization container.

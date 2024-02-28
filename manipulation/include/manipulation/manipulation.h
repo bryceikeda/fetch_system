@@ -40,6 +40,7 @@
 #include <manipulation/ManipulationPlanResponse.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <std_srvs/Trigger.h>
+#include <geometry_msgs/PoseArray.h>
 
 #include <tasks/task_base.h>
 #include <tasks/task_factory.h>
@@ -58,17 +59,17 @@ class Manipulation
 {
 public:
   Manipulation();
-  ~Manipulation() = default;
+  ~Manipulation();
   
   void setParameters(TaskParameters& params);
   bool handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res);
 
   ros::ServiceServer get_manipulation_plan_service;
   ros::ServiceClient update_planning_scene_service;
-  
-  void TestPickPlace(); 
+
 private:
   TaskParameters parameters; 
   ros::NodeHandle pnh_;
+  std::unordered_map<std::string, std::unique_ptr<TaskBase>> task_plans; 
 };
 #endif
