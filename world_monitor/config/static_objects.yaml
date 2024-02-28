@@ -1,0 +1,14 @@
+- object_id: "table1"
+  header_frame_id: "base_link"
+  primitive_types: [[1]]
+  primitive_dimensions: [[.913, .913, .04]]
+  primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
+  subframe_names: ["surface"]
+  subframe_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
+  #- name: "table2"
+  #frame_id: "base_link"
+  #primitive_types: [[1], [1]]
+  #primitive_dimensions: [[.913, .913, .04], [.913, .913, .04]]
+  #primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1], [0.0, 0.0, 0.2, 0, 0, 0, 1]]
+  #subframe_names: [[]]
+  #subframe_poses: [[]]

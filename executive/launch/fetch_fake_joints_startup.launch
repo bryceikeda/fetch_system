@@ -15,14 +15,13 @@
     <include file="$(find perception)/launch/gazebo_perception.launch" />
 
     <!-- Launch World Monitor -->
-    <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen"/>
+    <include file="$(find world_monitor)/launch/world_monitor.launch">
+        <arg name="yaml_path" value="$(find world_monitor)/config/static_objects.yaml"/>
+    </include>
 
     <!-- Move robot to ready state -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
 
-    <!-- Launch RViz -->
-    <arg name="rviz_config" default="$(find executive)/config/rviz_config.rviz" />
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(arg rviz_config)">
-      <rosparam command="load" file="$(find fetch_moveit_config)/config/kinematics.yaml"/>
-    </node>
+    <!-- Launch Visualizer -->
+    <include file="$(find visualizer)/launch/visualizer.launch"/>
 </launch>

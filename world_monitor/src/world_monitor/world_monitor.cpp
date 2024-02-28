@@ -5,12 +5,6 @@ WorldMonitor::WorldMonitor()
 }
 
 void 
-WorldMonitor::surfacesCallback(const world_monitor::CollisionObjects::ConstPtr& msg)
-{
-    surfaces = *msg;
-}
-
-void 
 WorldMonitor::objectDetectionsCallback(const vision_msgs::Detection3DArray::ConstPtr& msg)
 {
     object_detections = *msg;
@@ -20,9 +14,28 @@ void
 WorldMonitor::visionInfoCallback(const vision_msgs::VisionInfo::ConstPtr& msg)
 {
     // Assuming all manipulable objects are known, add them to object_names array
-    if (msg->method == "parameter server" && object_names.empty())
-    {   
-        ros::param::get(msg->database_location, object_names);
+    if (msg->method == "parameter server" && objects_info.empty())
+    {  
+        std::map<std::string, bool> tempDict;  
+        ros::param::get(msg->database_location, tempDict);
+        
+        for (const auto& pair : tempDict) {
+            objects_info.push_back(pair); 
+        }
+    }
+}
+
+bool 
+WorldMonitor::getStaticWorldRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res)
+{
+    if (!static_world.collision_objects.empty()) 
+    {
+        res.scene.world = static_world; 
+        return true;
+    } 
+    else 
+    {
+        return false;
     }
 }
 
@@ -53,12 +66,14 @@ WorldMonitor::updatePlanningScene()
     moveit_msgs::PlanningScene planning_scene;
 
     for (const auto& detection : object_detections.detections) {
-        moveit_msgs::CollisionObject co; 
-        co.id = object_names[detection.results[0].id];
-        co.header = detection.header;
-        co.pose = detection.bbox.center;
-        co.operation = moveit_msgs::CollisionObject::MOVE;
-        planning_scene.world.collision_objects.push_back(co);
+        if(objects_info[detection.results[0].id].second == true){
+            moveit_msgs::CollisionObject co; 
+            co.id = objects_info[detection.results[0].id].first;
+            co.header = detection.header;
+            co.pose = detection.bbox.center;
+            co.operation = moveit_msgs::CollisionObject::MOVE;
+            planning_scene.world.collision_objects.push_back(co);
+        }
     }
     planning_scene.is_diff = true;
     return planning_scene;
@@ -86,17 +101,20 @@ bool
 WorldMonitor::initializePlanningScene()
 {
     // If there are no detections, then don't initialize the planning scene
-    if (object_detections.detections.empty() || surfaces.objects.empty() || object_names.empty()) 
+    if (object_detections.detections.empty() || static_world.collision_objects.empty() || objects_info.empty()) 
     {   
         return true;
     }
     moveit_msgs::PlanningScene planning_scene;
-
-    // Add support surfaces that don't move 
-    addSurfacesToScene(planning_scene);
-
-    // Add manipulable objects that get added to list. Can move.
-    addObjectDetectionsToScene(planning_scene);
+    for(auto detection : object_detections.detections)
+    {
+        if(objects_info[detection.results[0].id].second == false){
+            addStaticObjectToScene(planning_scene, detection);
+        }
+        else{
+            addManipulableObjectToScene(planning_scene, detection);
+        } 
+    }
 
     planning_scene.is_diff = true;
 
@@ -112,40 +130,105 @@ WorldMonitor::initializePlanningScene()
     }
 }
 
-void
-WorldMonitor::addSurfacesToScene(moveit_msgs::PlanningScene& planning_scene) 
+void 
+WorldMonitor::addManipulableObjectTransform(const vision_msgs::Detection3D& detection)
 {
-    // Add support surfaces that are blue
-    for (auto& surface : surfaces.objects) {
-        moveit_msgs::ObjectColor color;
-        color.id = surface.id;
-        color.color.b = 1.0;
-        color.color.a = 1.0;
-        surface.operation = moveit_msgs::CollisionObject::ADD;
-        planning_scene.object_colors.push_back(color);
-        planning_scene.world.collision_objects.push_back(surface);
-        ROS_INFO_STREAM("[world_monitor_node] Adding support surface to scene: " << surface.id);
+    geometry_msgs::TransformStamped transform; 
+    transform.header.frame_id = collisionObject.header.frame_id;
+    transform.child_frame_id = collisionObject.id;
+    transform.transform.translation.x = collisionObject.pose.position.x;  
+    transform.transform.translation.y = collisionObject.pose.position.y;  
+    transform.transform.translation.z = collisionObject.pose.position.z;
+    transform.transform.rotation = collisionObject.pose.orientation; 
+    transformStampedArray.push_back(transform); 
+
+    for(int i = 0; i < collisionObject.subframe_names.size(); i++)
+    {
+        geometry_msgs::TransformStamped transform; 
+        transform.header.frame_id = collisionObject.id;
+        transform.child_frame_id = collisionObject.subframe_names[i];
+        transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;  
+        transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;  
+        transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;  
+        transform.transform.rotation = collisionObject.subframe_poses[i].orientation; 
+        transformStampedArray.push_back(transform); 
     }
 }
 
 void 
-WorldMonitor::addObjectDetectionsToScene(moveit_msgs::PlanningScene& planning_scene) 
+WorldMonitor::addStaticObjectTransform(const moveit_msgs::CollisionObject& collisionObject)
 {
-    for (const auto& detection : object_detections.detections) {
-        std::string name = object_names[detection.results[0].id];
+    geometry_msgs::TransformStamped transform; 
+    transform.header.frame_id = collisionObject.header.frame_id;
+    transform.child_frame_id = collisionObject.id;
+    transform.transform.translation.x = collisionObject.pose.position.x;  
+    transform.transform.translation.y = collisionObject.pose.position.y;  
+    transform.transform.translation.z = collisionObject.pose.position.z;
+    transform.transform.rotation = collisionObject.pose.orientation; 
+    transformStampedArray.push_back(transform); 
 
-        // Bottle and glass are both meshes        
-        if (name == "bottle" || name == "glass"){
-            planning_scene.world.collision_objects.push_back(getManipulableObjectMesh(name, detection));
-        }
-        else
-        {
-            // All other objects are boxes
-            planning_scene.world.collision_objects.push_back(getManipulableObjectBasicShape(name, detection));
-        }
-
-        ROS_INFO_STREAM("[world_monitor_node] Adding manipulable object to scene: " << name);
+    for(int i = 0; i < collisionObject.subframe_names.size(); i++)
+    {
+        geometry_msgs::TransformStamped transform; 
+        transform.header.frame_id = collisionObject.id;
+        transform.child_frame_id = collisionObject.subframe_names[i];
+        transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;  
+        transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;  
+        transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;  
+        transform.transform.rotation = collisionObject.subframe_poses[i].orientation; 
+        transformStampedArray.push_back(transform); 
     }
+}
+
+void 
+WorldMonitor::broadcastTransforms()
+{
+    for(auto transform : transformStampedArray)
+    {
+        transform.header.stamp = ros::Time::now(); 
+        tfb.sendTransform(transform); 
+    }
+}
+
+void
+WorldMonitor::addStaticObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection) 
+{
+    // Add support surfaces that are blue
+    for (auto static_object : static_world.collision_objects) {
+        if(static_object.id == objects_info[detection.results[0].id].first){ 
+            moveit_msgs::ObjectColor color;
+            color.id = static_object.id;
+            color.color.b = 1.0;
+            color.color.a = 1.0;
+            static_object.pose = detection.bbox.center;
+            static_object.operation = moveit_msgs::CollisionObject::ADD;
+            planning_scene.object_colors.push_back(color);
+            planning_scene.world.collision_objects.push_back(static_object);
+            addStaticObjectTransform(static_object); 
+            ROS_INFO_STREAM("[world_monitor_node] Adding support static object to scene: " << static_object.id);
+            break; 
+        }
+    }
+}
+
+void 
+WorldMonitor::addManipulableObjectToScene(moveit_msgs::PlanningScene& planning_scene, vision_msgs::Detection3D& detection) 
+{
+    std::string name = objects_info[detection.results[0].id].first;
+
+    // Bottle and glass are both meshes        
+    if (name == "bottle" || name == "glass"){
+        planning_scene.world.collision_objects.push_back(getManipulableObjectMesh(name, detection));
+    }
+    else
+    {
+        // All other objects are boxes or cylinders
+        planning_scene.world.collision_objects.push_back(getManipulableObjectBasicShape(name, detection));
+    }
+    
+    
+
+    ROS_INFO_STREAM("[world_monitor_node] Adding manipulable object to scene: " << name);
 }
 
 moveit_msgs::CollisionObject
@@ -159,7 +242,6 @@ WorldMonitor::getManipulableObjectBasicShape(const std::string& name, const visi
 
     shape_msgs::SolidPrimitive solid_primitive;
     
-    // Could find a way to make this cylinder if necessary
     if (name == "cylinder"){
         solid_primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
         solid_primitive.dimensions = {detection.bbox.size.z, detection.bbox.size.x/2}; 
@@ -212,4 +294,74 @@ WorldMonitor::computeMeshHeight(const shape_msgs::Mesh &mesh) {
   double x, y, z;
   geometric_shapes::getShapeExtents(mesh, x, y, z);
   return z;
+}
+
+void
+WorldMonitor::loadStaticObjects(std::string filepath)
+{
+    // Read configuration from YAML file
+    YAML::Node config = YAML::LoadFile(filepath);
+
+    // Iterate over each entry in the YAML file
+    for (const auto& entry : config) {
+        // Create a CollisionObject for each entry
+        moveit_msgs::CollisionObject collisionObject;
+
+            // Safety checks for required fields
+        if (!entry["object_id"] || !entry["header_frame_id"] || !entry["primitive_types"] ||
+            !entry["primitive_dimensions"] || !entry["primitive_poses"] || !entry["subframe_names"] || !entry["subframe_poses"]) {
+            // Handle missing fields or incorrect YAML structure
+            ROS_ERROR_STREAM("Invalid YAML structure in the file.");
+            continue;
+        }
+
+
+        collisionObject.id = entry["object_id"].as<std::string>();
+        collisionObject.header.frame_id = entry["header_frame_id"].as<std::string>();
+
+        // Get information arrays from the entry
+        const auto& primitiveTypes = entry["primitive_types"];
+        const auto& primitiveDimensions = entry["primitive_dimensions"];
+        const auto& primitivePoses = entry["primitive_poses"];
+       
+        const auto& subframeNames = entry["subframe_names"].as<std::vector<std::string>>();
+        const auto& subframePoses = entry["subframe_poses"];
+
+        // Iterate over each primitive in the entry
+        for (std::size_t i = 0; i < primitiveTypes.size(); ++i) {
+            // Assuming there is only one type and pose per primitive
+            shape_msgs::SolidPrimitive primitive;
+            primitive.type = primitiveTypes[i][0].as<int>();
+            primitive.dimensions = primitiveDimensions[i].as<std::vector<double>>();
+
+            geometry_msgs::Pose primitivePose;
+            primitivePose.position.x = primitivePoses[i][0].as<double>();
+            primitivePose.position.y = primitivePoses[i][1].as<double>();
+            primitivePose.position.z = primitivePoses[i][2].as<double>();
+            primitivePose.orientation.x = primitivePoses[i][3].as<double>();
+            primitivePose.orientation.y = primitivePoses[i][4].as<double>();
+            primitivePose.orientation.z = primitivePoses[i][5].as<double>();
+            primitivePose.orientation.w = primitivePoses[i][6].as<double>(); 
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.primitives.push_back(primitive);
+            collisionObject.primitive_poses.push_back(primitivePose);
+            
+        }
+        
+        for (std::size_t i = 0; i < subframeNames.size(); ++i) {
+            geometry_msgs::Pose subframePose;
+            subframePose.position.x = subframePoses[i][0].as<double>();
+            subframePose.position.y = subframePoses[i][1].as<double>();
+            subframePose.position.z = subframePoses[i][2].as<double>();
+            subframePose.orientation.x = subframePoses[i][3].as<double>();
+            subframePose.orientation.y = subframePoses[i][4].as<double>();
+            subframePose.orientation.z = subframePoses[i][5].as<double>();
+            subframePose.orientation.w = subframePoses[i][6].as<double>(); 
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.subframe_names.push_back(subframeNames[i]);
+            collisionObject.subframe_poses.push_back(subframePose);
+        }
+        // Add the CollisionObject to the list
+        static_world.collision_objects.push_back(collisionObject);
+    }
 }

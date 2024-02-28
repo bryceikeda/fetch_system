@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(world_monitor)
+project(visualizer)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,25 +8,20 @@ project(world_monitor)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  gazebo_msgs
   geometry_msgs
-  message_generation
-  moveit_core
+  moveit_msgs
   moveit_ros_planning_interface
+  moveit_task_constructor_core
+  moveit_task_constructor_msgs
   roscpp
-  rosparam_shortcuts
   rospy
   std_msgs
   std_srvs
-  moveit_msgs
-  vision_msgs
-  geometric_shapes
-  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(yaml-cpp REQUIRED)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -58,11 +53,11 @@ find_package(yaml-cpp REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-    #   FILES
-   #   Message1.msg
+# add_message_files(
+#   FILES
+#   Message1.msg
 #   Message2.msg
-#)
+# )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -79,11 +74,10 @@ find_package(yaml-cpp REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   moveit_msgs
-#   gazebo_msgs#   geometry_msgs#   std_msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   geometry_msgs#   moveit_msgs#   moveit_task_constructor_msgs#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -115,10 +109,9 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   LIBRARIES world_monitor
-   INCLUDE_DIRS include
-#  LIBRARIES world
-   CATKIN_DEPENDS message_runtime #gazebo_msgs geometry_msgs message_generation moveit_core moveit_ros_planning_interface roscpp rosparam_shortcuts rospy std_msgs
+  INCLUDE_DIRS include
+  LIBRARIES visualizer
+#  CATKIN_DEPENDS geometry_msgs moveit_msgs moveit_ros_planning_interface moveit_task_constructor_core moveit_task_constructor_msgs roscpp rospy std_msgs std_srvs
 #  DEPENDS system_lib
 )
 
@@ -129,24 +122,24 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+ include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-   src/${PROJECT_NAME}/world_monitor.cpp
-)
+ add_library(${PROJECT_NAME}
+   src/${PROJECT_NAME}/visualizer.cpp
+ )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/world_monitor_node.cpp)
+add_executable(${PROJECT_NAME}_node src/visualizer_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,10 +153,8 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-    world_monitor
    ${catkin_LIBRARIES}
-    yaml-cpp
-   )
+ )
 
 #############
 ## Install ##
@@ -174,8 +165,8 @@ target_link_libraries(${PROJECT_NAME}_node
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-#catkin_install_python(PROGRAMS
-#   scripts/world_monitor_node.py
+# catkin_install_python(PROGRAMS
+#   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
@@ -201,18 +192,18 @@ target_link_libraries(${PROJECT_NAME}_node
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
+install(FILES
+    launch/visualizer.launch
 #   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_world.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_visualizer.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

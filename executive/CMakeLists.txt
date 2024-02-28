@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   std_srvs
-  
+  world_monitor  
   behaviortree_cpp_v3
   actionlib_msgs
   actionlib

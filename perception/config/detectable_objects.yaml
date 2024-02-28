@@ -1,0 +1,25 @@
+- name: "sponge"
+  id: 0
+  frame_id: "base_link"
+  size: [0.05, 0.1, 0.02]
+  manipulable: True
+- name: "table1"
+  id: 1
+  frame_id: "base_link"
+  size: [0.0, 0.0, 0.0]
+  manipulable: False
+  #- name: "bottle"
+  #  id: 2 # Provides which object identifier vision_msgs uses
+  #  frame_id: "base_link"
+  #  size: [0.06, 0.06, 0.06]
+  #  manipulable: True
+  #- name: "glass"
+  #  id: 3
+  #  frame_id: "base_link"
+  #  size: [0.06, 0.06, 0.06]
+  #  manipulable: True
+  #- name: "cylinder"
+  #  id: 4
+  #  frame_id: "base_link"
+  #  size: [0.03, 0.0, 0.2]
+  #  manipulable: True

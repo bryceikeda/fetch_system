@@ -1,10 +1,8 @@
 <launch>
     <!-- Set your parameters as arguments in the launch file -->
-    <arg name="objects_relative_path" default="/config/manipulable_objects.yaml"/>
-    <arg name="surfaces_relative_path" default="/config/support_surfaces.yaml"/>
+    <arg name="detectable_objects_path" default="/config/detectable_objects.yaml"/>
   
     <node name="gazebo_perception_node" pkg="perception" type="gazebo_perception.py" output="screen">
-        <param name="objects_relative_path" type="string" value="$(arg objects_relative_path)"/>
-        <param name="surfaces_relative_path" type="string" value="$(arg surfaces_relative_path)"/>
+        <param name="detectable_objects_path" type="string" value="$(arg detectable_objects_path)"/>
     </node>
 </launch>
