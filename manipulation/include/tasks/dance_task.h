@@ -46,7 +46,7 @@ using namespace moveit::task_constructor;
 class DanceTask : public TaskBase
 {
 public:
-  DanceTask(const std::string& task_name);
+  DanceTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~DanceTask() = default;
   bool init(const TaskParameters& parameters);
 };

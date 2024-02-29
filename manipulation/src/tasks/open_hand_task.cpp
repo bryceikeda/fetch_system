@@ -2,12 +2,12 @@
 
   const bool registered = TaskFactory::registerTask(
       manipulation::ManipulationPlanRequest::OPEN_HAND,
-      [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-          return std::make_unique<OpenHandTask>(taskName);
+      [](const std::string& taskName, const ros::NodeHandle& nh) -> std::unique_ptr<TaskBase> {
+          return std::make_unique<OpenHandTask>(taskName, nh);
       }
   );
 
-OpenHandTask::OpenHandTask(const std::string& task_name) : TaskBase(task_name)
+OpenHandTask::OpenHandTask(const std::string& task_name, const ros::NodeHandle& nh) : TaskBase(task_name, nh)
 {
   current_state_stage_ = nullptr;
 }

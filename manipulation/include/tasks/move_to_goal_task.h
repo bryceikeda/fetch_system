@@ -45,7 +45,7 @@ using namespace moveit::task_constructor;
 class MoveToGoalTask : public TaskBase
 {
 public:
-  MoveToGoalTask(const std::string& task_name);
+  MoveToGoalTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~MoveToGoalTask() = default;
   bool init(const TaskParameters& parameters);
 };

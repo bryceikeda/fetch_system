@@ -41,6 +41,7 @@
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <std_srvs/Trigger.h>
 #include <geometry_msgs/PoseArray.h>
+#include <scene_graph/QuerySceneGraph.h>
 
 #include <tasks/task_base.h>
 #include <tasks/task_factory.h>
@@ -58,7 +59,7 @@ using namespace moveit::task_constructor;
 class Manipulation
 {
 public:
-  Manipulation();
+  Manipulation(const ros::NodeHandle& nh);
   ~Manipulation();
   
   void setParameters(TaskParameters& params);
@@ -69,7 +70,7 @@ public:
 
 private:
   TaskParameters parameters; 
-  ros::NodeHandle pnh_;
+  ros::NodeHandle nh_; 
   std::unordered_map<std::string, std::unique_ptr<TaskBase>> task_plans; 
 };
 #endif

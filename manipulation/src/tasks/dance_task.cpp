@@ -2,14 +2,14 @@
 
   const bool registered = TaskFactory::registerTask(
       manipulation::ManipulationPlanRequest::DANCE,
-      [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-          return std::make_unique<DanceTask>(taskName);
+      [](const std::string& taskName, const ros::NodeHandle& nh) -> std::unique_ptr<TaskBase> {
+          return std::make_unique<DanceTask>(taskName, nh);
       }
   );
 
 using namespace manipulation;
 
-DanceTask::DanceTask(const std::string& task_name) : TaskBase(task_name)
+DanceTask::DanceTask(const std::string& task_name, const ros::NodeHandle& nh) : TaskBase(task_name, nh)
 {
   current_state_stage_ = nullptr;
 }

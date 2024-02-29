@@ -2,15 +2,15 @@
 
 const bool registered = TaskFactory::registerTask(
   manipulation::ManipulationPlanRequest::MOVE_ARM,
-  [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-      return std::make_unique<MoveToGoalTask>(taskName);
+  [](const std::string& taskName, const ros::NodeHandle& nh) -> std::unique_ptr<TaskBase> {
+      return std::make_unique<MoveToGoalTask>(taskName, nh);
   }
 );
 
 
 //static const bool registered = TaskFactory::registerTask(manipulation::ManipulationPlanRequest::MOVE_ARM, [](const std::string& taskName) -> TaskBase* { return new MoveToGoalTask(taskName);});
 
-MoveToGoalTask::MoveToGoalTask(const std::string& task_name) : TaskBase(task_name)
+MoveToGoalTask::MoveToGoalTask(const std::string& task_name, const ros::NodeHandle& nh) : TaskBase(task_name, nh)
 {
   current_state_stage_ = nullptr;
 }

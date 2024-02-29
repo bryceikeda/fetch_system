@@ -3,7 +3,7 @@
 constexpr char LOGNAME[] = "moveit_task_constructor";
 using namespace manipulation;
 
-Manipulation::Manipulation()
+Manipulation::Manipulation(const ros::NodeHandle& nh) : nh_(nh)
 {
 
 }
@@ -46,20 +46,18 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
     // Use task name to label it within the list of tasks
     std::string task_name = req.manipulation_plan_request.task_name;
    
-    // Add list of support surfaces to allow collisions 
-    for (const auto& str : req.manipulation_plan_request.support_surfaces) {
-        parameters.support_surfaces_.push_back(str); 
-    }
-
-    task_plans[task_name] = TaskFactory::createTask(parameters.task_type_, task_name.c_str());
+    // Provide place surface
+    parameters.place_surface_ = req.manipulation_plan_request.place_surface;
+    parameters.support_surfaces_ = {req.manipulation_plan_request.place_surface};
     
+    task_plans[task_name] = TaskFactory::createTask(parameters.task_type_, task_name.c_str(), nh_);
+
     // Return failure if initialization fails
     if (!task_plans[task_name]->init(parameters))
     {
       res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE; 
       return true; 
     }
-
     // Get if planning suceeded or failed
     res.manipulation_plan_response.error_code = task_plans[task_name]->plan();
     

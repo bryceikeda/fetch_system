@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   shape_msgs
   std_srvs
   tf2_ros
+  std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -58,11 +60,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
+add_service_files(
+   FILES
+   QuerySceneGraph.srv
 #   Service1.srv
 #   Service2.srv
-# )
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -72,10 +75,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
+generate_messages(
+   DEPENDENCIES
 #   geometry_msgs#   moveit_msgs#   sensor_msgs#   shape_msgs
-# )
+   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -109,6 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES scene_graph
+  CATKIN_DEPENDS message_runtime
 #  CATKIN_DEPENDS geometry_msgs moveit_msgs rospy sensor_msgs shape_msgs std_srvs tf2_ros
 #  DEPENDS system_lib
 )

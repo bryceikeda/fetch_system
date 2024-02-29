@@ -28,10 +28,6 @@ TaskParametersLoader::loadParameters(const ros::NodeHandle& pnh_)
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_ready_pose", parameters.arm_ready_pose_);
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "arm_tuck_pose", parameters.arm_tuck_pose_);
     
-    std::string surface_link;
-    // Target object
-    errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "surface_link", surface_link);
-    parameters.support_surfaces_ = { surface_link};
     // Pick/Place metrics
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_min_dist", parameters.approach_object_min_dist_);
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "approach_object_max_dist", parameters.approach_object_max_dist_);
@@ -53,21 +49,6 @@ TaskParametersLoader::loadParameters(const ros::NodeHandle& pnh_)
     Eigen::Isometry3d diagonal_frame_transform; 
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "diagonal_frame_transform", diagonal_frame_transform);
     parameters.grasp_frame_transforms_["diagonal_frame_transform"] = diagonal_frame_transform;
-
-    // Add Place Poses
-    geometry_msgs::Pose pose; 
-    std::string surface_name = "table1";
-    std::vector<std::pair<geometry_msgs::Pose, std::string>> place_poses;
-    pose.position.x = -.3;
-    pose.position.y = .1;
-    pose.orientation.w = 1.0; 
-    place_poses.push_back(std::make_pair(pose, ""));
-    pose.position.x = -.3;
-    pose.position.y = 0.0;
-    pose.orientation.w = 1.0; 
-    place_poses.push_back(std::make_pair(pose, ""));
-    parameters.place_poses_[surface_name] = place_poses;
-
   
     rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }

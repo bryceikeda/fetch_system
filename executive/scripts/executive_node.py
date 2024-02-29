@@ -19,11 +19,11 @@ from moveit_msgs.msg import MoveItErrorCodes
 #  ManipulationPlanRequest.WAVE
 #  ManipulationPlanRequest.DANCE
 
-def build_action_request(task_type, object_name = "", support_surface = "", description = "", place_pose = Pose()):
+def build_action_request(task_type, object_name = "", place_surface_ = "", description = "", place_pose = Pose()):
     req = ManipulationPlanRequest()
     req.task_type = task_type
     req.object_name = object_name
-    req.support_surfaces = support_surface
+    req.place_surface = place_surface_
     req.task_name = description
     req.place_pose = place_pose
     return req
@@ -35,7 +35,6 @@ def main():
     
     # Use a more descriptive variable name for the action client
     plan_executer_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
-    plan_executer_client.wait_for_server()
 
     action_plan = [ 
         build_action_request(ManipulationPlanRequest.PICK, "sponge", "table1", "Pick sponge"),
@@ -43,10 +42,11 @@ def main():
     ]
         
     plan_to_execute = ExecuteTaskSolutionGoal()
+    print("here?")
 
     for task in action_plan:
         response = manipulation_plan_service(task)
-
+        print("Sent plan request")
         if response:
             rospy.loginfo("Plan received, executing plan")
             plan_to_execute.solution = response.manipulation_plan_response.solution

@@ -46,7 +46,7 @@ using namespace moveit::task_constructor;
 class WaveTask : public TaskBase
 {
 public:
-  WaveTask(const std::string& task_name);
+  WaveTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~WaveTask() = default;
   bool init(const TaskParameters& parameters);
 };

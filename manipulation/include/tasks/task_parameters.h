@@ -34,6 +34,7 @@ struct TaskParameters
 
   // object + surface
   std::vector<std::string> support_surfaces_;
+  std::string place_surface_;
   std::string object_name_;
 
   // Pick metrics
@@ -41,8 +42,8 @@ struct TaskParameters
 
   geometry_msgs::Pose place_pose_;
 
-  // Place metrics
-  std::unordered_map<std::string, std::vector<std::pair<geometry_msgs::Pose, std::string>> > place_poses_;
+  // Place subframes
+  std::vector<std::string> place_subframes_;
 
   // Pick and Place Metrics
   double approach_object_min_dist_;

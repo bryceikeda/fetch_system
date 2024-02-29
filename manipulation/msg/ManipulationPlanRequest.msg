@@ -17,7 +17,7 @@ string task_name
 string object_name
 
 # Place Surface
-string[] support_surfaces
+string place_surface
 
 # Place Position
 geometry_msgs/Pose place_pose

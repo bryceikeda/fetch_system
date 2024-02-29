@@ -4,8 +4,8 @@
   primitive_types: [[1]]
   primitive_dimensions: [[.913, .913, .04]]
   primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
-  subframe_names: ["surface"]
-  subframe_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
+  subframe_names: ["center", "left"]
+  subframe_poses: [[-.4, 0.0, .777, 0, 0, 0, 1], [-.4, -0.1, 0.777, 0, 0, 0, 1]]
   mesh_poses: []
 - object_id: "sponge"
   key: ""
@@ -16,12 +16,21 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "bottle"
-  key: "mesh"
+- object_id: "cylinder"
+  key: ""
   header_frame_id: "world"
-  primitive_types: []
-  primitive_dimensions: []
-  primitive_poses: []
+  primitive_types: [[3]]
+  primitive_dimensions: [[0.1, 0.02, 0.0]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
+# - object_id: "bottle"
+#   key: "mesh"
+#   header_frame_id: "world"
+#   primitive_types: []
+#   primitive_dimensions: []
+#   primitive_poses: []
+#   subframe_names: []
+#   subframe_poses: []
+#   mesh_poses: []

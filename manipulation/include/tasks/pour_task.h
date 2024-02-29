@@ -44,7 +44,7 @@
 class PourTask : public TaskBase
 {
 public:
-  PourTask(const std::string& task_name);
+  PourTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~PourTask() = default;
   bool init(const TaskParameters& parameters);
 private:

@@ -52,7 +52,7 @@ public:
     ros::Subscriber vision_info_sub;
     ros::ServiceClient planning_scene_service;
     ros::ServiceServer update_planning_scene_service;
-    ros::ServiceServer get_static_world_service;
+    ros::ServiceServer get_scene_objects_service;
     tf2_ros::TransformBroadcaster tfb; 
 
 private:

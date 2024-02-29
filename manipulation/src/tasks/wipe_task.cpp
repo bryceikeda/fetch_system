@@ -2,12 +2,12 @@
 
 const bool registered = TaskFactory::registerTask(
   manipulation::ManipulationPlanRequest::WIPE,
-  [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-      return std::make_unique<WipeTask>(taskName);
+  [](const std::string& taskName, const ros::NodeHandle& nh) -> std::unique_ptr<TaskBase> {
+      return std::make_unique<WipeTask>(taskName, nh);
   }
 );
 
-WipeTask::WipeTask(const std::string& task_name) : TaskBase(task_name)
+WipeTask::WipeTask(const std::string& task_name, const ros::NodeHandle& nh) : TaskBase(task_name, nh)
 {
   current_state_stage_ = nullptr;
 }

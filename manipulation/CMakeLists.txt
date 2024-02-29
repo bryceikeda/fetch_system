@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   tf2_eigen
-
+  scene_graph
   rviz_marker_tools
 )
 
@@ -29,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
-## Uncomment this if the package has a setup.py. This macro ensures
+## Uncomment this if the package.py has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
@@ -209,6 +209,7 @@ target_link_libraries(tasks
 catkin_install_python(PROGRAMS
    scripts/ready_pose.py
    scripts/tuck_arm.py
+   scripts/query_scene_graph.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

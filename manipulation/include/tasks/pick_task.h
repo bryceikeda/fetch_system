@@ -46,7 +46,7 @@ using namespace moveit::task_constructor;
 class PickTask : public TaskBase
 {
 public:
-  PickTask(const std::string& task_name);
+  PickTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~PickTask() = default;
   bool init(const TaskParameters& parameters);
 

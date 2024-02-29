@@ -2,8 +2,8 @@
 
   const bool registered = TaskFactory::registerTask(
       manipulation::ManipulationPlanRequest::WAVE,
-      [](const std::string& taskName) -> std::unique_ptr<TaskBase> {
-          return std::make_unique<WaveTask>(taskName);
+      [](const std::string& taskName, const ros::NodeHandle& nh) -> std::unique_ptr<TaskBase> {
+          return std::make_unique<WaveTask>(taskName, nh);
       }
   );
 
@@ -12,7 +12,7 @@
 
 using namespace manipulation;
 
-WaveTask::WaveTask(const std::string& task_name) : TaskBase(task_name)
+WaveTask::WaveTask(const std::string& task_name, const ros::NodeHandle& nh) : TaskBase(task_name, nh)
 {
   current_state_stage_ = nullptr;
 }

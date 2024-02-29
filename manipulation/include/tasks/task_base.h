@@ -18,7 +18,7 @@ using namespace moveit::task_constructor;
 class TaskBase
 {
 public:
-  TaskBase(const std::string& task_name);
+  TaskBase(const std::string& task_name, const ros::NodeHandle& nh);
   virtual ~TaskBase();
   virtual bool init(const TaskParameters& parameters) = 0;
   bool initTask();
@@ -53,6 +53,7 @@ protected:
 private:
   TaskPtr task_;
   const std::string task_name_;
+  ros::NodeHandle nh_;
 };
 
 #endif

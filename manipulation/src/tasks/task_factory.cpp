@@ -14,14 +14,14 @@ bool TaskFactory::registerTask(const int& taskType, CreatorFunction creator) {
     return true; 
 }
 
-std::unique_ptr<TaskBase> TaskFactory::createTask(const int& taskType, const std::string& taskName) {
+std::unique_ptr<TaskBase> TaskFactory::createTask(const int& taskType, const std::string& taskName, const ros::NodeHandle& nh) {
     // Find the creator function associated with the task type from ManipulationPlanRequest.msg in the registry
     auto it = getRegistry().find(taskType);
 
     // Check if the creator function is found
     if (it != getRegistry().end()) {
         // Call the creator function with the task name and return the created task wrapped in a unique_ptr
-        return std::unique_ptr<TaskBase>((it->second)(taskName));
+        return std::unique_ptr<TaskBase>((it->second)(taskName, nh));
     }
 
     // Return nullptr if the task ID is not registered

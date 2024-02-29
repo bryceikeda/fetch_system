@@ -35,23 +35,33 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
-
+#include <scene_graph/QuerySceneGraph.h>
 #include <tasks/task_parameters.h>
 #include <manipulation/ManipulationPlanRequest.h>
 #include <tasks/task_base.h>
 #include <tasks/task_factory.h>
+#include <std_msgs/String.h>
 
 using namespace moveit::task_constructor;
 
 class PlaceTask : public TaskBase
 {
 public:
-  PlaceTask(const std::string& task_name);
+  PlaceTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~PlaceTask() = default;
   bool init(const TaskParameters& parameters);
+  bool querySceneGraph(const std::string& node_name, 
+                      const std::string& relationship, 
+                      const std::string& attribute_name, 
+                      std::vector<std::string>& related_nodes, 
+                      std::vector<std::string>& attributes);
+
+  ros::ServiceClient query_scene_graph_client;
 
 private:
   Stage* attach_object_stage_;
+  std::vector<std::string> place_subframes; 
+  ros::NodeHandle nh_;
 };
 
 #endif

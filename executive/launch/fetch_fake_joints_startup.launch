@@ -24,7 +24,10 @@
 
     <!-- Move robot to ready state -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
-
+    
     <!-- Launch Visualizer -->
+    <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
+
+    <!-- Launch Visualizer (RViz) -->
     <include file="$(find visualizer)/launch/visualizer.launch"/>
 </launch>

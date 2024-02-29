@@ -43,7 +43,7 @@ using namespace moveit::task_constructor;
 class OpenHandTask : public TaskBase
 {
 public:
-  OpenHandTask(const std::string& task_name);
+  OpenHandTask(const std::string& task_name, const ros::NodeHandle& nh);
   ~OpenHandTask() = default;
   bool init(const TaskParameters& parameters);
 };
