@@ -8,7 +8,7 @@
   subframe_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
   mesh_poses: []
 - object_id: "sponge"
-  key: "manipulable"
+  key: ""
   header_frame_id: "world"
   primitive_types: [[1]]
   primitive_dimensions: [[0.05, 0.1, 0.02]]
@@ -16,10 +16,12 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-  #- name: "table2"
-  #frame_id: "base_link"
-  #primitive_types: [[1], [1]]
-  #primitive_dimensions: [[.913, .913, .04], [.913, .913, .04]]
-  #primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1], [0.0, 0.0, 0.2, 0, 0, 0, 1]]
-  #subframe_names: [[]]
-  #subframe_poses: [[]]
+- object_id: "bottle"
+  key: "mesh"
+  header_frame_id: "world"
+  primitive_types: []
+  primitive_dimensions: []
+  primitive_poses: []
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []

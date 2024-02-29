@@ -94,7 +94,7 @@ WorldMonitor::applyPlanningScene(moveit_msgs::PlanningScene& planning_scene)
 bool
 WorldMonitor::initializePlanningScene()
 {
-    // If there are no detections, then don't initialize the planning scene
+    // Don't initialize the planning scene until we have everything we need
     if (object_detections.detections.empty() || scene_object_properties.collision_objects.empty() || objects_info.empty()) 
     {   
         return true;
@@ -103,20 +103,19 @@ WorldMonitor::initializePlanningScene()
     moveit_msgs::PlanningScene planning_scene;
     for(auto detection : object_detections.detections)
     {
-        for(auto& collision_object : scene_object_properties.collision_objects)
+        for(auto collision_object : scene_object_properties.collision_objects)
         {
             if(collision_object.id == objects_info[detection.results[0].id])
             {
-    
                 // Get mesh file and add to object 
-                if(!collision_object.mesh_poses.empty())
+                if(collision_object.type.key == "mesh")
                 {
-                    getObjectMesh(collision_object.id, collision_object);
+                    collision_object = getObjectMesh(collision_object.id);
+                    collision_object.header = detection.header;
                 }
-
-                // Static objects are colored blue
-                if(collision_object.type.key == "static")
+                else if(collision_object.type.key == "static")
                 {
+                    // Static objects are colored blue
                     moveit_msgs::ObjectColor color;
                     color.id = collision_object.id;
                     color.color.b = 1.0;
@@ -184,15 +183,25 @@ WorldMonitor::broadcastTransforms()
     }
 }
 
-void
-WorldMonitor::getObjectMesh(const std::string& name, moveit_msgs::CollisionObject& collision_object)
+moveit_msgs::CollisionObject
+WorldMonitor::getObjectMesh(const std::string& name)
 {
     // Load meshes of objects into the scene
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.id = name; 
+
     std::string resource = "package://world_monitor/meshes/" + name + ".stl";
 
     // load mesh
     const Eigen::Vector3d scaling(1, 1, 1);
     shapes::Shape *shape = shapes::createMeshFromResource(resource, scaling);
+
+    if (!shape)
+    {
+        ROS_WARN_STREAM("[WorldMonitor] Unable to load mesh for object: " << name);
+        return collision_object;
+    }
+
     shapes::ShapeMsg shape_msg;
     shapes::constructMsgFromShape(shape, shape_msg);
  
@@ -202,6 +211,8 @@ WorldMonitor::getObjectMesh(const std::string& name, moveit_msgs::CollisionObjec
     collision_object.mesh_poses.resize(1);
     collision_object.mesh_poses[0].orientation.w = 1.0;
     collision_object.mesh_poses[0].position.z += computeMeshHeight(collision_object.meshes[0]) / 2 + 0.002;
+    
+    return collision_object; 
 }
 
 double 
@@ -241,6 +252,7 @@ WorldMonitor::loadObjectParameters(std::string filepath)
        
         const auto& subframeNames = entry["subframe_names"].as<std::vector<std::string>>();
         const auto& subframePoses = entry["subframe_poses"];
+        
         const auto& meshPoses = entry["mesh_poses"];
 
         // Primitives
@@ -261,21 +273,6 @@ WorldMonitor::loadObjectParameters(std::string filepath)
             // Set the pose and primitive for the CollisionObject
             collisionObject.primitives.push_back(primitive);
             collisionObject.primitive_poses.push_back(primitivePose);
-            
-        }
-        
-        // Mesh Poses
-        for (std::size_t i = 0; i < meshPoses.size(); ++i) {
-            geometry_msgs::Pose meshPose;
-            meshPose.position.x = meshPoses[i][0].as<double>();
-            meshPose.position.y = meshPoses[i][1].as<double>();
-            meshPose.position.z = meshPoses[i][2].as<double>();
-            meshPose.orientation.x = meshPoses[i][3].as<double>();
-            meshPose.orientation.y = meshPoses[i][4].as<double>();
-            meshPose.orientation.z = meshPoses[i][5].as<double>();
-            meshPose.orientation.w = meshPoses[i][6].as<double>(); 
-            // Set the pose and primitive for the CollisionObject
-            collisionObject.subframe_poses.push_back(meshPose);
         }
 
         // Subframes
@@ -292,6 +289,23 @@ WorldMonitor::loadObjectParameters(std::string filepath)
             collisionObject.subframe_names.push_back(subframeNames[i]);
             collisionObject.subframe_poses.push_back(subframePose);
         }
+
+        // Mesh Poses
+        for (std::size_t i = 0; i < meshPoses.size(); ++i) {
+            geometry_msgs::Pose meshPose;
+            meshPose.position.x = meshPoses[i][0].as<double>();
+            meshPose.position.y = meshPoses[i][1].as<double>();
+            meshPose.position.z = meshPoses[i][2].as<double>();
+            meshPose.orientation.x = meshPoses[i][3].as<double>();
+            meshPose.orientation.y = meshPoses[i][4].as<double>();
+            meshPose.orientation.z = meshPoses[i][5].as<double>();
+            meshPose.orientation.w = meshPoses[i][6].as<double>(); 
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.subframe_poses.push_back(meshPose);
+        }
+        
+        collisionObject.operation = moveit_msgs::CollisionObject::ADD;
+
         // Add the CollisionObject to the list
         scene_object_properties.collision_objects.push_back(collisionObject);
     }

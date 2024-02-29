@@ -38,7 +38,7 @@ public:
     void loadObjectParameters(const std::string filepath);
 
     moveit_msgs::PlanningScene updatePlanningScene();
-    void getObjectMesh(const std::string& name, moveit_msgs::CollisionObject& collisionObject); 
+    moveit_msgs::CollisionObject getObjectMesh(const std::string& name); 
     double computeMeshHeight(const shape_msgs::Mesh &mesh);
 
     // Object detection/tracking
