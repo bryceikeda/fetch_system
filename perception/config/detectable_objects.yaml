@@ -6,12 +6,14 @@
   id: 1
   frame_id: "world"
   size: [0.0, 0.0, 0.0]
-- name: "cylinder"
+- name: "bottle" # cylinder
   id: 2
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
-  manipulable: True
-
+- name: "glass"
+  id: 3
+  frame_id: "world"
+  size: [0.03, 0.2, 0.0]
 # - name: "bottle"
 #   id: 2 # Provides which object identifier vision_msgs uses
 #   frame_id: "world"

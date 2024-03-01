@@ -16,8 +16,8 @@ string task_name
 # Name of object being picked
 string object_name
 
-# Place Surface
-string place_surface
+# Place on surface or pour in objects
+string target_name
 
 # Place Position
 geometry_msgs/Pose place_pose

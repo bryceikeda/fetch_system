@@ -11,7 +11,7 @@ import time
 # Safety!: There is NO perception.
 #          The ONLY objects the collision detection software is aware
 #          of are itself & the floor.
-if __name__ == '__main__':
+if __name__ == "__main__":
     rospy.init_node("ready_pose")
 
     # Create move group interface for a fetch robot
@@ -31,14 +31,20 @@ if __name__ == '__main__':
     # planning_scene.addCube("my_right_ground", 2, 0.0, -1.2, -1.0)
 
     # TF joint names
-    joint_names = ["torso_lift_joint", "shoulder_pan_joint",
-                   "shoulder_lift_joint", "upperarm_roll_joint",
-                   "elbow_flex_joint", "forearm_roll_joint",
-                   "wrist_flex_joint", "wrist_roll_joint"]
+    joint_names = [
+        "torso_lift_joint",
+        "shoulder_pan_joint",
+        "shoulder_lift_joint",
+        "upperarm_roll_joint",
+        "elbow_flex_joint",
+        "forearm_roll_joint",
+        "wrist_flex_joint",
+        "wrist_roll_joint",
+    ]
     # Lists of joint angles in the same order as in joint_names
     home_pose = [[0.0, 1.1266, -0.4946, -2.9679, 1.3058, 1.267, 1.2769, 3.1415]]
 
-    #time.sleep(10)
+    time.sleep(2)
 
     for pose in home_pose:
         if rospy.is_shutdown():
@@ -58,12 +64,12 @@ if __name__ == '__main__':
             else:
                 # If you get to this point please search for:
                 # moveit_msgs/MoveItErrorCodes.msg
-                rospy.logerr("Arm goal in state: %s",
-                             move_group.get_move_action().get_state())
+                rospy.logerr(
+                    "Arm goal in state: %s", move_group.get_move_action().get_state()
+                )
         else:
             rospy.logerr("MoveIt! failure no result returned.")
 
     # This stops all arm movement goals
     # It should be called when a program is exiting so movement stops
     move_group.get_move_action().cancel_all_goals()
-

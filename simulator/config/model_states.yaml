@@ -5,11 +5,11 @@
 - name: table1 # Thickness is .04
   position: [1.0, 0.0, -.2, 0.0, 0.0, 0.0, 1.0]
 - name: sponge
-  position: [.8, 0.0, .6, 0.0, 0.0, 0.0, 1.0]
+  position: [2.0, 0.0, .6, 0.0, 0.0, 0.0, 1.0] #[.8, 0.0, .6, 0.0, 0.0, 0.0, 1.0]
 - name: table2 # Thickness is .04
   position: [3.0, 0.0, -.2, 0.0, 0.0, 0.0, 1.0]
 - name: cylinder
-  position: [2.0, .1, .67, 0.0, 0.0, 0.0, 1.0]
+  position: [.8, .1, .67, 0.0, 0.0, 0.0, 1.0]
 - name: bottle
   position: [0.8, 0.1, .57, 0.0, 0.0, 0.0, 1.0]
 - name: glass

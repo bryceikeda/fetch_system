@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   world_monitor  
-  behaviortree_cpp_v3
   actionlib_msgs
   actionlib
   message_generation
@@ -57,36 +56,36 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-    DIRECTORY msg
-    #   FILES
-#   Message1.msg
-#   Message2.msg
-)
+# add_message_files(
+#     DIRECTORY msg
+#     #   FILES
+# #   Message1.msg
+# #   Message2.msg
+# )
 
-## Generate services in the 'srv' folder
-add_service_files(
-    DIRECTORY srv
-    #   FILES
-#   Service1.srv
-#   Service2.srv
- )
+# ## Generate services in the 'srv' folder
+# add_service_files(
+#     DIRECTORY srv
+#     #   FILES
+# #   Service1.srv
+# #   Service2.srv
+#  )
 
-## Generate actions in the 'action' folder
-add_action_files(
-    DIRECTORY action
-    # FILES
-#   Action1.action
-#   Action2.action
-)
+# ## Generate actions in the 'action' folder
+# add_action_files(
+#     DIRECTORY action
+#     # FILES
+# #   Action1.action
+# #   Action2.action
+# )
 
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-    std_msgs
-    actionlib_msgs
-   #   geometry_msgs#   moveit_msgs#   std_msgs
-)
+# ## Generate added messages and services with any dependencies listed here
+# generate_messages(
+#    DEPENDENCIES
+#     std_msgs
+#     actionlib_msgs
+#    #   geometry_msgs#   moveit_msgs#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -116,12 +115,12 @@ generate_messages(
 ## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
+# ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES executive # bt_nodes
-  CATKIN_DEPENDS actionlib_msgs message_runtime# geometry_msgs manipulation moveit_msgs roscpp rospy std_msgs std_srvs
-#  DEPENDS system_lib
+#   INCLUDE_DIRS include
+#   LIBRARIES executive # bt_nodes
+#   CATKIN_DEPENDS actionlib_msgs message_runtime# geometry_msgs manipulation moveit_msgs roscpp rospy std_msgs std_srvs
+# #  DEPENDS system_lib
 )
 
 ###########
@@ -130,15 +129,15 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+# include_directories(
+#   include
+#   ${catkin_INCLUDE_DIRS}
+# )
 
-## Declare a C++ library
-add_library(${PROJECT_NAME}
-   src/${PROJECT_NAME}/executive.cpp
-)
+# ## Declare a C++ library
+# add_library(${PROJECT_NAME}
+#    src/${PROJECT_NAME}/executive.cpp
+# )
 
 #add_library(bt_nodes
     #    src/bt_nodes/.cpp
@@ -151,33 +150,33 @@ add_library(${PROJECT_NAME}
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/executive_node.cpp)
+# ## The recommended prefix ensures that target names across packages don't collide
+# add_executable(${PROJECT_NAME}_node src/executive_node.cpp)
 
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+# ## Rename C++ executable without prefix
+# ## The above recommended prefix causes long target names, the following renames the
+# ## target back to the shorter version for ease of user use
+# ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
+# # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
-## Add cmake target dependencies of the executable
-## same as for the library above
- add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# ## Add cmake target dependencies of the executable
+# ## same as for the library above
+#  add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-   ${catkin_LIBRARIES}
-   executive
-   #bt_nodes
- )
+# ## Specify libraries to link a library or executable target against
+# target_link_libraries(${PROJECT_NAME}_node
+#    ${catkin_LIBRARIES}
+#    executive
+#    #bt_nodes
+#  )
 
-add_executable(test_bt test/test_bt.cpp)
-add_dependencies(test_bt ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(test_bt ${catkin_LIBRARIES} )
+# add_executable(test_bt test/test_bt.cpp)
+# add_dependencies(test_bt ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(test_bt ${catkin_LIBRARIES} )
 
-add_executable(test_server test/test_server.cpp)
-add_dependencies(test_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(test_server ${catkin_LIBRARIES} )
+# add_executable(test_server test/test_server.cpp)
+# add_dependencies(test_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(test_server ${catkin_LIBRARIES} )
 
 
 #############

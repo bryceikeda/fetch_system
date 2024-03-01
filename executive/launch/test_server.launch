@@ -1,5 +1,0 @@
-<launch>
-
-	<node pkg="executive" type="test_server" name="test_server" output="screen" />
-
-</launch>

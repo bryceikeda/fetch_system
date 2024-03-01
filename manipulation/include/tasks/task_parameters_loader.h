@@ -11,13 +11,15 @@
 #include <moveit_msgs/RobotState.h>
 #include <tasks/task_parameters.h>
 
-class TaskParametersLoader {
-    public:
-        TaskParametersLoader();
-        void loadParameters(const ros::NodeHandle& pnh);
-        TaskParameters& getParameters(); 
-    private:
-        TaskParameters parameters;
+class TaskParametersLoader
+{
+public:
+    TaskParametersLoader();
+    void loadParameters(const ros::NodeHandle &pnh);
+    TaskParameters &getParameters();
+
+private:
+    TaskParameters parameters;
 };
 
 #endif

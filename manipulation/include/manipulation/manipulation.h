@@ -28,10 +28,7 @@
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 #include <moveit_task_constructor_msgs/Solution.h>
-#include <manipulation/PlanPickPlaceAction.h>
-#include <manipulation/PlanPickPlaceGoal.h>
 #include <actionlib/server/simple_action_server.h>
-#include "manipulation/PickPlace.h"
 #include <tasks/task_parameters.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -59,18 +56,18 @@ using namespace moveit::task_constructor;
 class Manipulation
 {
 public:
-  Manipulation(const ros::NodeHandle& nh);
+  Manipulation(const ros::NodeHandle &nh);
   ~Manipulation();
-  
-  void setParameters(TaskParameters& params);
+
+  void setParameters(TaskParameters &params);
   bool handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res);
 
   ros::ServiceServer get_manipulation_plan_service;
   ros::ServiceClient update_planning_scene_service;
 
 private:
-  TaskParameters parameters; 
-  ros::NodeHandle nh_; 
-  std::unordered_map<std::string, std::unique_ptr<TaskBase>> task_plans; 
+  TaskParameters parameters;
+  ros::NodeHandle nh_;
+  std::unordered_map<std::string, std::unique_ptr<TaskBase>> task_plans;
 };
 #endif

@@ -27,7 +27,6 @@
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 #include <actionlib/server/simple_action_server.h>
-#include <manipulation/PlanPickPlaceAction.h>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/Vector3Stamped.h>
@@ -46,9 +45,9 @@ using namespace moveit::task_constructor;
 class DanceTask : public TaskBase
 {
 public:
-  DanceTask(const std::string& task_name, const ros::NodeHandle& nh);
+  DanceTask(const std::string &task_name, const ros::NodeHandle &nh);
   ~DanceTask() = default;
-  bool init(const TaskParameters& parameters);
+  bool init(const TaskParameters &parameters);
 };
 
 #endif

@@ -13,7 +13,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
-#include <unordered_map> 
+#include <unordered_map>
 
 struct TaskParameters
 {
@@ -32,10 +32,10 @@ struct TaskParameters
   std::string arm_ready_pose_;
   std::string arm_tuck_pose_;
 
-  // object + surface
+  // object + surface or object to pour into
   std::vector<std::string> support_surfaces_;
-  std::string place_surface_;
   std::string object_name_;
+  std::string target_name_;
 
   // Pick metrics
   std::unordered_map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;
@@ -60,7 +60,7 @@ struct TaskParameters
   std::vector<moveit_msgs::RobotState> robot_states_;
   // Link poses
   std::vector<geometry_msgs::PoseStamped> hand_poses_;
-  
+
   // Open close task
   bool open_hand_;
 };

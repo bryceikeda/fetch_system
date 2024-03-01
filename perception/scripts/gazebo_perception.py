@@ -4,11 +4,18 @@ import yaml
 import rospy
 import rospkg
 from gazebo_msgs.msg import ModelStates
-from vision_msgs.msg import Detection3DArray, Detection3D, ObjectHypothesisWithPose, BoundingBox3D, VisionInfo
+from vision_msgs.msg import (
+    Detection3DArray,
+    Detection3D,
+    ObjectHypothesisWithPose,
+    BoundingBox3D,
+    VisionInfo,
+)
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import Pose, Vector3, Point, Quaternion
 from moveit_msgs.msg import CollisionObject, PlanningSceneWorld
 from shape_msgs.msg import SolidPrimitive
+
 
 class DetectableObjectBuilder:
     def __init__(self, id, frame_id, size):
@@ -23,32 +30,39 @@ class DetectableObjectBuilder:
         self.detection.bbox.size.y = size[1]
         self.detection.bbox.size.z = size[2]
 
+
 class Perception:
     def __init__(self):
-        rospy.init_node('gazebo_perception_node')
+        rospy.init_node("gazebo_perception_node")
 
         self.model_states = ModelStates()
         self.object_dict = {}
 
-        self.isSceneInitialized = False 
+        self.isSceneInitialized = False
 
-        rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
+        rospy.Subscriber(
+            "/gazebo/model_states", ModelStates, self.model_states_callback
+        )
 
-        self.vision_info_pub = rospy.Publisher('/perception/vision_info', VisionInfo, queue_size=1)   
-        self.object_detections_pub = rospy.Publisher('/perception/object_detections', Detection3DArray, queue_size=1)   
-    
+        self.vision_info_pub = rospy.Publisher(
+            "/perception/vision_info", VisionInfo, queue_size=1
+        )
+        self.object_detections_pub = rospy.Publisher(
+            "/perception/object_detections", Detection3DArray, queue_size=1
+        )
+
     def model_states_callback(self, msg):
-        self.model_states = msg 
+        self.model_states = msg
 
     def object_detections_publisher(self):
         detections = Detection3DArray()
-        
+
         for i, name in enumerate(self.model_states.name):
             gazebo_object = self.object_dict.get(name)
             if gazebo_object:
                 gazebo_object.detection.bbox.center = self.model_states.pose[i]
                 detections.detections.append(gazebo_object.detection)
-            
+
         self.object_detections_pub.publish(detections)
 
     def vision_info_publisher(self):
@@ -60,40 +74,43 @@ class Perception:
     def read_objects_yaml_file(self, file_path):
         try:
             # Open the YAML file for reading
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 # Load the YAML data
                 yaml_data = yaml.safe_load(file)
-                
+
                 objects_info = []
 
                 # Iterate through each object in the YAML data
                 for item in yaml_data:
                     # Extract relevant attributes
-                    name = item['name']
-                    id = item['id']
-                    frame_id = item['frame_id']
-                    size = item['size']
+                    name = item["name"]
+                    id = item["id"]
+                    frame_id = item["frame_id"]
+                    size = item["size"]
                     # Add object to dictionary
                     object_builder = DetectableObjectBuilder(id, frame_id, size)
                     self.object_dict[name] = object_builder
 
                     objects_info.append(name)
 
-                rospy.set_param('/vision_info_lookup', objects_info)
+                rospy.set_param("/vision_info_lookup", objects_info)
 
         except Exception as e:
             print(f"Error reading YAML file: {e}")
             return None
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     perception_node = Perception()
-    
-    objects_relative_path = rospy.get_param("~detectable_objects_path", "/config/detectable_objects.yaml")
-    
-    objects_file_path = rospkg.RosPack().get_path('perception') + objects_relative_path
+
+    objects_relative_path = rospy.get_param(
+        "~detectable_objects_path", "/config/detectable_objects.yaml"
+    )
+
+    objects_file_path = rospkg.RosPack().get_path("perception") + objects_relative_path
     perception_node.read_objects_yaml_file(objects_file_path)
-   
-    rate = rospy.Rate(10) 
+
+    rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         perception_node.object_detections_publisher()
         perception_node.vision_info_publisher()

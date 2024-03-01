@@ -26,25 +26,25 @@
 
 class WorldMonitor
 {
-public: 
+public:
     WorldMonitor();
-    ~WorldMonitor() = default; 
-   
+    ~WorldMonitor() = default;
+
     // PSI
     bool initializePlanningScene();
-    bool updatePlanningSceneRequest(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-    bool getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request& req, moveit_msgs::GetPlanningScene::Response& res);
-    bool applyPlanningScene(moveit_msgs::PlanningScene& planning_scene);
+    bool updatePlanningSceneRequest(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+    bool getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
+    bool applyPlanningScene(moveit_msgs::PlanningScene &planning_scene);
     void loadObjectParameters(const std::string filepath);
 
     moveit_msgs::PlanningScene updatePlanningScene();
-    moveit_msgs::CollisionObject getObjectMesh(const std::string& name); 
+    moveit_msgs::CollisionObject getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collisionObject);
     double computeMeshHeight(const shape_msgs::Mesh &mesh);
 
     // Object detection/tracking
-    void objectDetectionsCallback(const vision_msgs::Detection3DArray::ConstPtr& msg);
-    void visionInfoCallback(const vision_msgs::VisionInfo::ConstPtr& msg);
-    void addObjectTransform(const moveit_msgs::CollisionObject& collisionObject); 
+    void objectDetectionsCallback(const vision_msgs::Detection3DArray::ConstPtr &msg);
+    void visionInfoCallback(const vision_msgs::VisionInfo::ConstPtr &msg);
+    void addObjectTransform(const moveit_msgs::CollisionObject &collisionObject);
     void broadcastTransforms();
 
     // ROS Communication
@@ -53,14 +53,14 @@ public:
     ros::ServiceClient planning_scene_service;
     ros::ServiceServer update_planning_scene_service;
     ros::ServiceServer get_scene_objects_service;
-    tf2_ros::TransformBroadcaster tfb; 
+    tf2_ros::TransformBroadcaster tfb;
 
 private:
     vision_msgs::Detection3DArray object_detections;
     moveit_msgs::PlanningSceneWorld active_scene_objects;
     moveit_msgs::PlanningSceneWorld scene_object_properties;
     std::vector<std::string> objects_info;
-    std::vector<geometry_msgs::TransformStamped> transformStampedArray; 
+    std::vector<geometry_msgs::TransformStamped> transformStampedArray;
 };
 
 #endif

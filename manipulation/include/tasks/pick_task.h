@@ -27,10 +27,7 @@
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 #include <actionlib/server/simple_action_server.h>
-#include <manipulation/PlanPickPlaceAction.h>
-#include <manipulation/PickPlace.h>
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
-
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <moveit_msgs/Grasp.h>
@@ -46,12 +43,12 @@ using namespace moveit::task_constructor;
 class PickTask : public TaskBase
 {
 public:
-  PickTask(const std::string& task_name, const ros::NodeHandle& nh);
+  PickTask(const std::string &task_name, const ros::NodeHandle &nh);
   ~PickTask() = default;
-  bool init(const TaskParameters& parameters);
+  bool init(const TaskParameters &parameters);
 
 private:
-  Stage* attach_object_stage_;
+  Stage *attach_object_stage_;
 };
 
 #endif

@@ -3,7 +3,7 @@
     <!-- Run MTC pick and place -->
     <!-- By default, we are not in debug mode -->
     <arg name="debug" default="false" />
-    <arg name="fake_execution" default="false"/> 
+    <arg name="fake_execution" default="false"/>
 
     <!-- Run the main MoveIt executable -->
     <arg name="pipeline" default="$(optenv PLANNING_PIPELINE ompl)" />

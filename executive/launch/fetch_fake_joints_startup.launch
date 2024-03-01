@@ -22,6 +22,9 @@
         <arg name="yaml_path" value="$(find world_monitor)/config/object_definitions.yaml"/>
     </include>
 
+    <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" /> 
+
+
     <!-- Move robot to ready state -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
     
