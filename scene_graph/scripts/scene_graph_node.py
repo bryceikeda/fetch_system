@@ -13,7 +13,6 @@ import itertools
 from scene_graph.srv import QuerySceneGraph, QuerySceneGraphResponse
 from shape_msgs.msg import SolidPrimitive
 
-
 class SceneGraphNode:
     def __init__(self):
         # Initialize the ROS node
@@ -70,22 +69,11 @@ class SceneGraphNode:
         self.get_scene_objects()
 
         for collision_object in self.scene_objects.world.collision_objects:
-            if collision_object.type.key == "mesh":
-                dimensions = []
-                attributes = {"type": "object"}
-                # Use the first pose in 'primitive_poses' as the position
-                position = (
-                    collision_object.pose.position.x,
-                    collision_object.pose.position.y,
-                    collision_object.pose.position.z,
-                )
-                shape = "mesh"
-                # Add the object node to the graph
-            elif collision_object.type.key == "static":
+            if collision_object.type.key == "surface":
                 dimensions = collision_object.primitives[0].dimensions
                 subframe_names = [name for name in collision_object.subframe_names]
                 attributes = {
-                    "type": "support_surface",
+                    "type": "surface",
                     "subframe_names": subframe_names,
                 }
                 # Use the first pose in 'primitive_poses' as the position
@@ -102,7 +90,15 @@ class SceneGraphNode:
                 else:
                     shape = "cylinder"
             else:
-                dimensions = collision_object.primitives[0].dimensions
+                if len(collision_object.primitives) == 0:
+                    dimensions = (0.18, 0.0)
+                    shape = "cylinder"
+                else: 
+                    dimensions = collision_object.primitives[0].dimensions
+                    if collision_object.primitives[0].type == 1:
+                        shape = "box"
+                    else:
+                        shape = "cylinder"
                 attributes = {"type": "object"}
                 # Use the first pose in 'primitive_poses' as the position
                 position = (
@@ -110,10 +106,6 @@ class SceneGraphNode:
                     collision_object.pose.position.y,
                     collision_object.pose.position.z,
                 )
-                if collision_object.primitives[0].type == 1:
-                    shape = "box"
-                else:
-                    shape = "cylinder"
 
             attributes.update(
                 {"position": position, "dimensions": dimensions, "shape": shape}
@@ -152,96 +144,91 @@ class SceneGraphNode:
         # Iterate through each node in the graph
         for node, attributes in self.graph.nodes(data=True):
             # Check if the node represents a support surface (e.g., a table)
-            if attributes.get("type") == "support_surface":
-                support_surface_node = node
+            if attributes.get("type") == "surface":
+                surface_node = node
                 # Iterate through all nodes in the graph
                 for other_node, other_attributes in self.graph.nodes(data=True):
                     # Check if the other node is an object and not the same as the support surface
                     if (
                         other_attributes.get("type", "") == "object"
-                        and other_node != support_surface_node
+                        and other_node != surface_node
                     ):
                         # Check if the object is on the support surface
-                        if self.is_object_on_support_surface(
-                            support_surface_node, other_node
+                        if self.is_object_on_surface(
+                            surface_node, other_node
                         ):
                             # Add an edge representing the "supports" relationship with 'label'
                             self.graph.add_edge(
-                                support_surface_node, other_node, label="supports"
+                                surface_node, other_node, label="supports"
                             )
-                        elif self.graph.has_edge(support_surface_node, other_node):
-                            self.graph.remove_edge(support_surface_node, other_node)
+                        elif self.graph.has_edge(surface_node, other_node):
+                            self.graph.remove_edge(surface_node, other_node)
                             print(
-                                f"Removed edge between {support_surface_node} and {other_node}"
+                                f"Removed edge between {surface_node} and {other_node}"
                             )
 
     def get_surface_object_is_on(self, object_node):
-        for support_surface_node, attributes in self.graph.nodes(data=True):
-            if attributes.get("type") == "support_surface":
+        for surface_node, attributes in self.graph.nodes(data=True):
+            if attributes.get("type") == "surface":
                 supported_nodes = self.get_objects_supported_by_surface(
-                    support_surface_node
+                    surface_node
                 )
                 for supported_node in supported_nodes:
                     if supported_node == object_node:
-                        return support_surface_node
+                        return surface_node
         return None
 
-    def get_objects_supported_by_surface(self, support_surface_node):
+    def get_objects_supported_by_surface(self, surface_node):
         supported_nodes = []
 
         # Iterate through all edges connected to the support surface node
         for _, other_node, edge_data in self.graph.out_edges(
-            support_surface_node, data=True
+            surface_node, data=True
         ):
             # Check if the edge represents a "supports" relationship
             if edge_data.get("label") == "supports":
                 supported_nodes.append(other_node)
         return supported_nodes
 
-    def is_object_on_support_surface(self, support_surface_node, object_node):
+    def is_object_on_surface(self, surface_node, object_node):
         # Get positions and dimensions of the object and support surface nodes
         object_position = self.graph.nodes[object_node]["position"]
         object_shape = self.graph.nodes[object_node]["shape"]
         object_dimensions = self.graph.nodes[object_node]["dimensions"]
 
-        support_surface_position = self.graph.nodes[support_surface_node]["position"]
-        support_surface_dimensions = self.graph.nodes[support_surface_node][
+        surface_position = self.graph.nodes[surface_node]["position"]
+        surface_dimensions = self.graph.nodes[surface_node][
             "dimensions"
         ]
         if object_shape == "box":
             # Check if the object is above the support surface but below a little above the middle of the object
             is_above = (
-                support_surface_position[2]
+                surface_position[2]
                 < object_position[2]
-                < support_surface_position[2]
-                + support_surface_dimensions[2] / 2
+                < surface_position[2]
+                + surface_dimensions[2] / 2
                 + object_dimensions[SolidPrimitive.BOX_Z] / 2
                 + 0.05
             )
         elif object_shape == "cylinder":
             is_above = (
-                support_surface_position[2]
+                surface_position[2]
                 < object_position[2]
-                < support_surface_position[2]
-                + support_surface_dimensions[2] / 2
+                < surface_position[2]
+                + surface_dimensions[2] / 2
                 + object_dimensions[SolidPrimitive.CYLINDER_HEIGHT] / 2
                 + 0.05
             )
-        elif object_shape == "mesh":
-            is_above = (
-                support_surface_position[2]
-                < object_position[2]
-                < support_surface_position[2] + support_surface_dimensions[2] / 2 + 0.05
-            )
+
         is_within_x = (
-            support_surface_position[0] - support_surface_dimensions[0] / 2
+            surface_position[0] - surface_dimensions[0] / 2
             < object_position[0]
-            < support_surface_position[0] + support_surface_dimensions[0] / 2
+            < surface_position[0] + surface_dimensions[0] / 2
         )
         is_within_y = (
-            support_surface_position[1] - support_surface_dimensions[1] / 2
+            surface_position[1] - surface_dimensions[1] / 2
             < object_position[1]
-            < support_surface_position[1] + support_surface_dimensions[1] / 2
+            < surface_position[1] + surface_dimensions[1] / 2
         )
 
         return is_above and is_within_x and is_within_y
@@ -277,7 +264,7 @@ if __name__ == "__main__":
     scene_graph = SceneGraphNode()
 
     rate = rospy.Rate(10)
-
+    rospy.sleep(3)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
     scene_graph.calculate_supports_relationship()

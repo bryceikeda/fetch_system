@@ -34,7 +34,9 @@ TaskBase::getHeightOffsetForSurface(const std::string &object_name, const std::s
     // Get the offset of the object
     if (!object_co.meshes.empty())
     {
-        object_place_offset += place_surface_offset;
+        double x, y, z;
+        geometric_shapes::getShapeExtents(object_co.meshes[0], x, y, z);
+        object_place_offset += z / 2 + place_surface_offset;
     }
     else if (object_co.primitives[0].type == shape_msgs::SolidPrimitive::BOX)
     {

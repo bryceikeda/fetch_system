@@ -108,9 +108,9 @@ bool WorldMonitor::initializePlanningScene()
                     getObjectMesh(collision_object.id, collision_object);
                     collision_object.header = detection.header;
                 }
-                else if (collision_object.type.key == "static")
+                else if (collision_object.type.key == "surface")
                 {
-                    // Static objects are colored blue
+                    // Surface objects are colored blue
                     moveit_msgs::ObjectColor color;
                     color.id = collision_object.id;
                     color.color.b = 1.0;
@@ -202,17 +202,7 @@ WorldMonitor::getObjectMesh(const std::string &name, moveit_msgs::CollisionObjec
 
     collision_object.mesh_poses.resize(1);
     collision_object.mesh_poses[0].orientation.w = 1.0;
-    collision_object.mesh_poses[0].position.z += computeMeshHeight(collision_object.meshes[0]) / 2 + 0.002;
-
     return collision_object;
-}
-
-double
-WorldMonitor::computeMeshHeight(const shape_msgs::Mesh &mesh)
-{
-    double x, y, z;
-    geometric_shapes::getShapeExtents(mesh, x, y, z);
-    return z;
 }
 
 void WorldMonitor::loadObjectParameters(std::string filepath)

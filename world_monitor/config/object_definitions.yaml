@@ -1,5 +1,5 @@
 - object_id: "table1"
-  key: "static"
+  key: "surface"
   header_frame_id: "world"
   primitive_types: [[1]]
   primitive_dimensions: [[.913, .913, .04]]
@@ -16,15 +16,15 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-# - object_id: "cylinder"
-#   key: "object"
-#   header_frame_id: "world"
-#   primitive_types: [[3]]
-#   primitive_dimensions: [[0.1, 0.02, 0.0]]
-#   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
-#   subframe_names: []
-#   subframe_poses: []
-#   mesh_poses: []
+- object_id: "cylinder"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[3]]
+  primitive_dimensions: [[0.2, 0.02, 0.0]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
 - object_id: "glass"
   key: "mesh"
   header_frame_id: "world"
@@ -40,6 +40,15 @@
   primitive_types: []
   primitive_dimensions: []
   primitive_poses: []
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
+- object_id: "cup"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[3]]
+  primitive_dimensions: [[0.1, 0.02, 0.0]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
   subframe_names: []
   subframe_poses: []
   mesh_poses: []

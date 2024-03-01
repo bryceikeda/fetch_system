@@ -39,7 +39,6 @@ public:
 
     moveit_msgs::PlanningScene updatePlanningScene();
     moveit_msgs::CollisionObject getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collisionObject);
-    double computeMeshHeight(const shape_msgs::Mesh &mesh);
 
     // Object detection/tracking
     void objectDetectionsCallback(const vision_msgs::Detection3DArray::ConstPtr &msg);

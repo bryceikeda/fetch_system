@@ -13,6 +13,9 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <scene_graph/QuerySceneGraph.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shape_extents.h>
+#include <geometric_shapes/shape_operations.h>
 
 using namespace moveit::task_constructor;
 

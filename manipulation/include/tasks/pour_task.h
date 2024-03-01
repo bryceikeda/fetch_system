@@ -46,9 +46,6 @@ public:
   PourTask(const std::string &task_name, const ros::NodeHandle &nh);
   ~PourTask() = default;
   bool init(const TaskParameters &parameters);
-
-private:
-  Stage *attach_object_stage_;
 };
 
 #endif

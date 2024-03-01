@@ -14,13 +14,15 @@
   id: 3
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
+
+
+## Can use meshes, but for now, we are using primitive shapes
+## Would need to fix place to handle not having the height of the primitive
 # - name: "bottle"
 #   id: 2 # Provides which object identifier vision_msgs uses
 #   frame_id: "world"
 #   size: [0.06, 0.06, 0.06]
-  #  manipulable: True
-  #- name: "glass"
-  #  id: 3
-  #  frame_id: "world"
-  #  size: [0.06, 0.06, 0.06]
-  #  manipulable: True
+#- name: "glass"
+#  id: 3
+#  frame_id: "world"
+#  size: [0.06, 0.06, 0.06]

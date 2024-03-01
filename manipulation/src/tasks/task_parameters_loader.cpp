@@ -49,6 +49,22 @@ void TaskParametersLoader::loadParameters(const ros::NodeHandle &pnh_)
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "diagonal_grasp_frame_transform", diagonal_grasp_frame_transform);
     parameters.grasp_frame_transforms_["diagonal_grasp_frame_transform"] = diagonal_grasp_frame_transform;
 
+    // Could be used in the future, not used right now. Included because bottle was being placed sideways
+    moveit_msgs::Constraints upright_constraint;
+    upright_constraint.name = "upright_constraint";
+    upright_constraint.orientation_constraints.resize(1);
+    {
+        moveit_msgs::OrientationConstraint &c = upright_constraint.orientation_constraints[0];
+        c.link_name = parameters.hand_frame_;       // constraining hand frame
+        c.header.frame_id = parameters.base_frame_; // reference the base frame
+        c.orientation.w = 1.0;
+        c.absolute_y_axis_tolerance = 0.65;
+        c.absolute_z_axis_tolerance = 0.65;
+        c.absolute_x_axis_tolerance = M_PI;
+        c.weight = 1.0;
+    }
+    parameters.constraints_[upright_constraint.name] = upright_constraint;
+
     rosparam_shortcuts::shutdownIfError(LOGNAME, errors);
 }
 

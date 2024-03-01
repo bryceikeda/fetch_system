@@ -70,6 +70,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
     ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
     return 1;
   }
+
   {
     auto stage = std::make_unique<stages::Connect>(
         "move to place", stages::Connect::GroupPlannerVector{{parameters.arm_group_name_, sampling_planner}});
@@ -77,7 +78,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
     stage->properties().configureInitFrom(Stage::PARENT);
     addStageToTask(std::move(stage));
   }
-  auto alternatives_container = std::make_unique<Alternatives>("Place Alternatives");
+  auto fallback_container = std::make_unique<Fallbacks>("Place an object ");
   for (auto grasp_frame_transform : parameters.grasp_frame_transforms_)
   {
     for (auto subframe : place_subframes)
@@ -174,10 +175,10 @@ bool PlaceTask::init(const TaskParameters &parameters)
         stage->setDirection(vec);
         place->insert(std::move(stage));
       }
-      alternatives_container->insert(std::move(place));
+      fallback_container->insert(std::move(place));
     }
   }
-  addStageToTask(std::move(alternatives_container));
+  addStageToTask(std::move(fallback_container));
   /******************************************************
    *                                                    *
    *          Move to Home                              *

@@ -69,7 +69,6 @@ bool PickTask::init(const TaskParameters &parameters)
       addStageToTask(std::move(stage));
     }
 
-    std::string support_surface;
     std::vector<std::string> related_nodes;
     std::vector<std::string> place_subframes;
 
@@ -78,6 +77,8 @@ bool PickTask::init(const TaskParameters &parameters)
       ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
       return 1;
     }
+    
+    std::string support_surface = related_nodes[0];
 
     // Move to pick stage
     {
@@ -181,7 +182,7 @@ bool PickTask::init(const TaskParameters &parameters)
       {
         auto stage = std::make_unique<stages::MoveRelative>("lift object", cartesian_planner);
         stage->properties().configureInitFrom(Stage::PARENT, {"group"});
-        stage->setMinMaxDistance(parameters.lift_object_min_dist_, parameters.lift_object_max_dist_);
+        stage->setMinMaxDistance(0, parameters.lift_object_max_dist_);
         stage->setIKFrame(parameters.hand_frame_);
         stage->properties().set("marker_ns", "lift_object");
 

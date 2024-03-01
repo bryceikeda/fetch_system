@@ -13,6 +13,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
+#include <moveit_msgs/Constraints.h>
 #include <unordered_map>
 
 struct TaskParameters
@@ -39,6 +40,10 @@ struct TaskParameters
 
   // Pick metrics
   std::unordered_map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;
+
+  // Known Constraints
+  std::unordered_map<std::string, moveit_msgs::Constraints> constraints_;
+
 
   geometry_msgs::Pose place_pose_;
 

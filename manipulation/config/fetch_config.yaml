@@ -27,12 +27,12 @@ diagonal_grasp_frame_transform: [0.02, 0, 0.0, 0, -.7854, 0.0]
 place_surface_offset: .005
 
 # Valid distance range when approaching an object for picking
-approach_object_min_dist: 0.1
-approach_object_max_dist: 0.2
+approach_object_min_dist: 0.05
+approach_object_max_dist: 0.1
 
 # Valid height range when lifting an object after pick
-lift_object_min_dist: 0.02
-lift_object_max_dist: 0.1
+lift_object_min_dist: 0.01
+lift_object_max_dist: 0.08
 
 object_offset: [.05, 0, 0, 0, 0, 0]
 

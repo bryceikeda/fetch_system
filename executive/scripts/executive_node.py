@@ -51,21 +51,30 @@ def main():
         "execute_task_solution", ExecuteTaskSolutionAction
     )
 
-    action_plan = [
-        # build_action_request(ManipulationPlanRequest.PICK, "bottle", "table1", "Pick sponge"),
+    pour_plan = [
+        build_action_request(ManipulationPlanRequest.PICK, "bottle", "", "Pick bottle"),
         # #build_action_request(ManipulationPlanRequest.WIPE, "sponge", "table1", "Wipe table"),
         build_action_request(
             ManipulationPlanRequest.POUR, "bottle", "glass", "Pour bottle"
-        )
-        # build_action_request(ManipulationPlanRequest.PLACE, "bottle", "table1", "Place sponge")
+        ),
+        build_action_request(ManipulationPlanRequest.PLACE, "bottle", "table1", "Place bottle")
+    ]
+
+    wipe_plan = [
+        build_action_request(ManipulationPlanRequest.PICK, "sponge", "", "Pick bottle"),
+        # #build_action_request(ManipulationPlanRequest.WIPE, "sponge", "table1", "Wipe table"),
+        build_action_request(
+            ManipulationPlanRequest.WIPE, "sponge", "table1", "Pour bottle"
+        ),
+        build_action_request(ManipulationPlanRequest.PLACE, "sponge", "table1", "Place bottle")
     ]
 
     plan_to_execute = ExecuteTaskSolutionGoal()
 
-    for task in action_plan:
+    for task in pour_plan:
         response = manipulation_plan_service(task)
         print("Sent plan request")
-        if response:
+        if response.manipulation_plan_response.error_code.val == MoveItErrorCodes.SUCCESS:
             rospy.loginfo("Plan received, executing plan")
             plan_to_execute.solution = response.manipulation_plan_response.solution
             plan_executer_client.send_goal_and_wait(plan_to_execute)
@@ -78,7 +87,7 @@ def main():
                 rospy.logerror("Execution Failed, exiting")
                 return 1
         else:
-            rospy.logerror("Failed to call service get_manipulation_plan, exiting")
+            rospy.logerror("Failed to get plan, exiting")
             return 1
 
 
