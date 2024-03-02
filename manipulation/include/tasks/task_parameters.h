@@ -43,7 +43,7 @@ struct TaskParameters
 
   // Known Constraints
   std::unordered_map<std::string, moveit_msgs::Constraints> constraints_;
-
+  std::unordered_map<std::string, std::vector<std::string>> allowed_grasp_frame_transforms_;
 
   geometry_msgs::Pose place_pose_;
 
@@ -57,17 +57,12 @@ struct TaskParameters
   double lift_object_max_dist_;
   double place_surface_offset_;
 
-  geometry_msgs::Pose object_offset_;
-
   // For move to goal, either specify joints or link pose
   bool use_joint_positions_;
   // Joint positions
   std::vector<moveit_msgs::RobotState> robot_states_;
   // Link poses
   std::vector<geometry_msgs::PoseStamped> hand_poses_;
-
-  // Open close task
-  bool open_hand_;
 };
 
 #endif

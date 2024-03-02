@@ -19,9 +19,10 @@ base_frame: "base_link"
 surface_link: "table1"
 
 # Different Grasp orientations
-horizontal_grasp_frame_transform: [0.02, 0, 0.0, 0.0, 0.0, 0.0]
-vertical_grasp_frame_transform: [0.02, 0, 0.0,  0, -1.5707, 0.0]
-diagonal_grasp_frame_transform: [0.02, 0, 0.0, 0, -.7854, 0.0]
+grasp_frame_transform_names: ["horizontal", "vertical", "diagonal"]
+grasp_frame_transforms: [0.02, 0, 0.0, 0.0, 0.0, 0.0, 
+                         0.02, 0, 0.0,  0, -1.5707, 0.0, 
+                         0.02, 0, 0.0, 0, -.7854, 0.0] 
 
 # Place offset from surface
 place_surface_offset: .005

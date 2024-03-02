@@ -2,10 +2,46 @@
   key: "surface"
   header_frame_id: "world"
   primitive_types: [[1]]
-  primitive_dimensions: [[.913, .913, .04]]
-  primitive_poses: [[0.0, 0.0, 0.755, 0, 0, 0, 1]]
-  subframe_names: ["center", "left"]
-  subframe_poses: [[-.4, 0.0, .777, 0, 0, 0, 1], [-.4, -0.1, 0.777, 0, 0, 0, 1]]
+  primitive_dimensions: [[.75, 1.52, .04]]
+  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
+  subframe_names: ["center", "left", "right"]
+  subframe_poses: [[-.25, -.1, 0.647, 0, 0, 0, 1], [-.25, 0.0, 0.647, 0, 0, 0, 1], [-.25, 0.1, 0.647, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+  mesh_poses: []
+- object_id: "chips can"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[3]]
+  primitive_dimensions: [[0.235, 0.04, 0.0]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
+- object_id: "cracker box"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[1]]
+  primitive_dimensions: [[0.16, 0.065, 0.215]] # real size [[0.16, 0.065, 0.215]] 
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
+- object_id: "mustard bottle"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[1]]
+  primitive_dimensions: [[.065, .03, 0.155]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
+  mesh_poses: []
+- object_id: "meat can"
+  key: "object"
+  header_frame_id: "world"
+  primitive_types: [[1]]
+  primitive_dimensions: [[.1, .05, .085]]
+  primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
+  subframe_names: []
+  subframe_poses: []
   mesh_poses: []
 - object_id: "sponge"
   key: "object"

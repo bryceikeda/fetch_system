@@ -90,7 +90,6 @@ class Perception:
                     # Add object to dictionary
                     object_builder = DetectableObjectBuilder(id, frame_id, size)
                     self.object_dict[name] = object_builder
-
                     objects_info.append(name)
 
                 rospy.set_param("/vision_info_lookup", objects_info)

@@ -75,6 +75,14 @@ bool PlaceTask::init(const TaskParameters &parameters)
     auto stage = std::make_unique<stages::Connect>(
         "move to place", stages::Connect::GroupPlannerVector{{parameters.arm_group_name_, sampling_planner}});
     stage->setTimeout(5.0);
+    if(parameters.object_name_ == "bottle")
+    {
+      stage->setPathConstraints(parameters.constraints_.at("upright_constraint"));
+    }
+    else if (parameters.object_name_ == "sponge")
+    {
+      stage->setPathConstraints(parameters.constraints_.at("downward_constraint"));
+    }
     stage->properties().configureInitFrom(Stage::PARENT);
     addStageToTask(std::move(stage));
   }
@@ -168,6 +176,14 @@ bool PlaceTask::init(const TaskParameters &parameters)
         stage->properties().configureInitFrom(Stage::PARENT, {"group"});
         stage->setMinMaxDistance(.12, .25);
         stage->setIKFrame(parameters.hand_frame_);
+        if(parameters.object_name_ == "bottle")
+        {
+          stage->setPathConstraints(parameters.constraints_.at("upright_constraint"));
+        }
+        else if (parameters.object_name_ == "sponge")
+        {
+          stage->setPathConstraints(parameters.constraints_.at("downward_constraint"));
+        }
         stage->properties().set("marker_ns", "retreat");
         geometry_msgs::Vector3Stamped vec;
         vec.header.frame_id = parameters.hand_frame_;

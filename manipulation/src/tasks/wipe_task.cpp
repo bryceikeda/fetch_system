@@ -75,7 +75,7 @@ bool WipeTask::init(const TaskParameters &parameters)
     {
       auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
       stage->setTimeout(5.0);
-      stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical_grasp_frame_transform")->second, parameters.hand_frame_);
+      stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical")->second, parameters.hand_frame_);
       stage->properties().configureInitFrom(Stage::PARENT);
 
       geometry_msgs::PoseStamped place_pose;

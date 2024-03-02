@@ -61,21 +61,40 @@ def main():
     ]
 
     wipe_plan = [
-        build_action_request(ManipulationPlanRequest.PICK, "sponge", "", "Pick bottle"),
+        build_action_request(ManipulationPlanRequest.PICK, "sponge", "", "Pick sponge"),
         # #build_action_request(ManipulationPlanRequest.WIPE, "sponge", "table1", "Wipe table"),
         build_action_request(
             ManipulationPlanRequest.WIPE, "sponge", "table1", "Pour bottle"
         ),
-        build_action_request(ManipulationPlanRequest.PLACE, "sponge", "table1", "Place bottle")
+        build_action_request(ManipulationPlanRequest.PLACE, "sponge", "table1", "Place sponge")
     ]
+
+    picking_sequence = [
+        build_action_request(ManipulationPlanRequest.PICK, "meat can", "", "Pick meat can"),
+        build_action_request(ManipulationPlanRequest.PLACE, "meat can", "table1", "Place mean can")
+    ]
+
 
     plan_to_execute = ExecuteTaskSolutionGoal()
 
-    for task in pour_plan:
-        response = manipulation_plan_service(task)
-        print("Sent plan request")
-        if response.manipulation_plan_response.error_code.val == MoveItErrorCodes.SUCCESS:
-            rospy.loginfo("Plan received, executing plan")
+    max_tries = 2
+
+    for task in picking_sequence:
+        current_tries = 0
+        while current_tries < max_tries:
+            response = manipulation_plan_service(task)
+            if response.manipulation_plan_response.error_code.val == MoveItErrorCodes.SUCCESS:
+                rospy.loginfo("Plan received, executing plan")
+                current_tries = 0
+                break 
+            else:
+                rospy.loginfo("Failed to get plan, trying again")
+                current_tries += 1
+
+        if current_tries == max_tries:
+            rospy.logerror("Failed to get plan, exiting")
+            return 1
+        else:
             plan_to_execute.solution = response.manipulation_plan_response.solution
             plan_executer_client.send_goal_and_wait(plan_to_execute)
 
@@ -86,10 +105,6 @@ def main():
             else:
                 rospy.logerror("Execution Failed, exiting")
                 return 1
-        else:
-            rospy.logerror("Failed to get plan, exiting")
-            return 1
-
 
 if __name__ == "__main__":
     main()

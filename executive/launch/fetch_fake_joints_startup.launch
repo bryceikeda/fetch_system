@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <!-- Add world origin -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args="0 0 0 0 0 0 1 world base_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args="0 0 0 0 0 0 1 vicon_world base_link" />
 
     <!-- Launch Fake Joints Simulator -->
     <include file="$(find simulator)/launch/fake_joints_simulator.launch" />
@@ -23,7 +23,6 @@
     </include>
 
     <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" /> 
-
 
     <!-- Move robot to ready state -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>

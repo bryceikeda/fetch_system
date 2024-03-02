@@ -1,21 +1,27 @@
-- name: "sponge"
+- name: "table1"
   id: 0
   frame_id: "world"
   size: [0.05, 0.1, 0.02]
-- name: "table1"
+- name: "meat can"
   id: 1
   frame_id: "world"
   size: [0.0, 0.0, 0.0]
-- name: "bottle" # cylinder
+- name: "chips can" # cylinder
   id: 2
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
-- name: "glass"
+- name: "mustard bottle"
   id: 3
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
-
-
+- name: "mustard bottle"
+  id: 4
+  frame_id: "world"
+  size: [0.03, 0.2, 0.0]
+- name: "cracker box"
+  id: 5
+  frame_id: "world"
+  size: [0.03, 0.2, 0.0]
 ## Can use meshes, but for now, we are using primitive shapes
 ## Would need to fix place to handle not having the height of the primitive
 # - name: "bottle"
@@ -26,3 +32,19 @@
 #  id: 3
 #  frame_id: "world"
 #  size: [0.06, 0.06, 0.06]
+# - name: "sponge"
+#   id: 0
+#   frame_id: "world"
+#   size: [0.05, 0.1, 0.02]
+# - name: "table1"
+#   id: 1
+#   frame_id: "world"
+#   size: [0.0, 0.0, 0.0]
+# - name: "bottle" # cylinder
+#   id: 2
+#   frame_id: "world"
+#   size: [0.03, 0.2, 0.0]
+# - name: "glass"
+#   id: 3
+#   frame_id: "world"
+#   size: [0.03, 0.2, 0.0]
