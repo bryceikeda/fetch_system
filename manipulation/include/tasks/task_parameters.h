@@ -39,11 +39,10 @@ struct TaskParameters
   std::string target_name_;
 
   // Pick metrics
-  std::unordered_map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;
-
+  std::map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;
+  std::vector<std::string> grasp_frame_transforms_insertion_order_;
   // Known Constraints
   std::unordered_map<std::string, moveit_msgs::Constraints> constraints_;
-  std::unordered_map<std::string, std::vector<std::string>> allowed_grasp_frame_transforms_;
 
   geometry_msgs::Pose place_pose_;
 

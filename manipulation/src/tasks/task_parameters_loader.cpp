@@ -26,31 +26,36 @@ void TaskParametersLoader::loadParameters(const ros::NodeHandle &pnh_)
     Eigen::Isometry3d horizontal_grasp_frame_transform;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "horizontal_grasp_frame_transform", horizontal_grasp_frame_transform);
     parameters.grasp_frame_transforms_[horizontal_grasp_frame_transform_name] = horizontal_grasp_frame_transform;
+    parameters.grasp_frame_transforms_insertion_order_.push_back(horizontal_grasp_frame_transform_name);
 
     std::string vertical_grasp_frame_transform_name;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "vertical_grasp_frame_transform_name", vertical_grasp_frame_transform_name);
     Eigen::Isometry3d vertical_grasp_frame_transform;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "vertical_grasp_frame_transform", vertical_grasp_frame_transform);
     parameters.grasp_frame_transforms_[vertical_grasp_frame_transform_name] = vertical_grasp_frame_transform;
+    parameters.grasp_frame_transforms_insertion_order_.push_back(vertical_grasp_frame_transform_name);
 
     std::string diagonal_grasp_frame_transform_name;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "diagonal_grasp_frame_transform_name", diagonal_grasp_frame_transform_name);
     Eigen::Isometry3d diagonal_grasp_frame_transform;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "diagonal_grasp_frame_transform", diagonal_grasp_frame_transform);
     parameters.grasp_frame_transforms_[diagonal_grasp_frame_transform_name] = diagonal_grasp_frame_transform;
+    parameters.grasp_frame_transforms_insertion_order_.push_back(diagonal_grasp_frame_transform_name);
 
     std::string long_horizontal_grasp_frame_transform_name;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "long_horizontal_grasp_frame_transform_name", long_horizontal_grasp_frame_transform_name);
     Eigen::Isometry3d long_horizontal_grasp_frame_transform;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "long_horizontal_grasp_frame_transform", long_horizontal_grasp_frame_transform);
     parameters.grasp_frame_transforms_[long_horizontal_grasp_frame_transform_name] = long_horizontal_grasp_frame_transform;
-    
+    parameters.grasp_frame_transforms_insertion_order_.push_back(long_horizontal_grasp_frame_transform_name);
+
     std::string long_vertical_grasp_frame_transform_name;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "long_vertical_grasp_frame_transform_name", long_vertical_grasp_frame_transform_name);
     Eigen::Isometry3d long_vertical_grasp_frame_transform;
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "long_vertical_grasp_frame_transform", long_vertical_grasp_frame_transform);
     parameters.grasp_frame_transforms_[long_vertical_grasp_frame_transform_name] = long_vertical_grasp_frame_transform;
-
+    parameters.grasp_frame_transforms_insertion_order_.push_back(long_vertical_grasp_frame_transform_name);
+    
     // Predefined pose targets
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_open_pose", parameters.hand_open_pose_);
     errors += !rosparam_shortcuts::get(LOGNAME, pnh_, "hand_close_pose", parameters.hand_close_pose_);

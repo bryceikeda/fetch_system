@@ -70,8 +70,8 @@ def main():
     ]
 
     picking_sequence = [
-        build_action_request(ManipulationPlanRequest.PICK, "cracker box", "", "Pick meat can"),
-        build_action_request(ManipulationPlanRequest.PLACE, "cracker box", "table1", "Place meat can")
+        build_action_request(ManipulationPlanRequest.PICK, "chips can", "", "Pick meat can"),
+        build_action_request(ManipulationPlanRequest.PLACE, "chips can", "table1", "Place meat can")
     ]
 
 

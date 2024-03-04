@@ -89,10 +89,9 @@ bool PickTask::init(const TaskParameters &parameters)
       addStageToTask(std::move(stage));
     }
 
-    auto alternatives_container = std::make_unique<Alternatives>("Pick Alternatives");
-    for (auto grasp_frame_transform : parameters.grasp_frame_transforms_)
+    auto alternatives_container = std::make_unique<Fallbacks>("Pick Alternatives");
+    for (auto grasp_frame_transform : parameters.grasp_frame_transforms_insertion_order_)
     {
-      ROS_ERROR_STREAM(grasp_frame_transform.first);
       auto grasp = std::make_unique<SerialContainer>("pick object");
       exposeTo(*grasp, {"eef", "hand", "group", "ik_frame"});
       grasp->properties().configureInitFrom(Stage::PARENT, {"eef", "hand", "group", "ik_frame"});
@@ -132,7 +131,7 @@ bool PickTask::init(const TaskParameters &parameters)
         auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
         wrapper->setMaxIKSolutions(8);
         wrapper->setMinSolutionDistance(1.0);
-        wrapper->setIKFrame(grasp_frame_transform.second, parameters.hand_frame_);
+        wrapper->setIKFrame(parameters.grasp_frame_transforms_.at(grasp_frame_transform), parameters.hand_frame_);
         wrapper->properties().configureInitFrom(Stage::PARENT, {"eef", "group"});
         wrapper->properties().configureInitFrom(Stage::INTERFACE, {"target_pose"});
         grasp->insert(std::move(wrapper));

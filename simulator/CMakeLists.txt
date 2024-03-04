@@ -170,6 +170,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
    scripts/model_states_publisher.py
+   scripts/vicon_model_states_publisher.py
    scripts/VICON_to_ROS.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )

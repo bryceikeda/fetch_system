@@ -87,7 +87,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
     addStageToTask(std::move(stage));
   }
   auto fallback_container = std::make_unique<Fallbacks>("Place an object ");
-  for (auto grasp_frame_transform : parameters.grasp_frame_transforms_)
+  for (auto grasp_frame_transform : parameters.grasp_frame_transforms_insertion_order_)
   {
     for (auto subframe : place_subframes)
     {
@@ -135,7 +135,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
         // Compute IK
         auto wrapper = std::make_unique<stages::ComputeIK>("place pose IK", std::move(stage));
         wrapper->setMaxIKSolutions(8);
-        wrapper->setIKFrame(grasp_frame_transform.second, parameters.hand_frame_);
+        wrapper->setIKFrame(parameters.grasp_frame_transforms_.at(grasp_frame_transform), parameters.hand_frame_);
         wrapper->properties().configureInitFrom(Stage::PARENT, {"eef", "group"});
         wrapper->properties().configureInitFrom(Stage::INTERFACE, {"target_pose"});
         place->insert(std::move(wrapper));
