@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <launch>
     <!-- Add world origin -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args="0 0 0 0 0 0 1 world base_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args=".593 1.077 .649 0.0 0.0 0 1 world base_link" />
 
     <!-- SIMULATOR -->
     <include file="$(find simulator)/launch/fake_joints_simulator.launch"/>
-    <node name="simulator" pkg="simulator" type="model_states_publisher.py" output="screen">
-        <param name="model_states_file_path" value="$(find simulator)/config/model_states.yaml" />
-    </node>
-
+    <node name="simulator" pkg="simulator" type="vicon_model_states_publisher.py" output="screen"/>
+    
     <!-- MANIPULATION -->
     <include file="$(find manipulation)/launch/manipulation.launch">
         <arg name="fake_execution" value="true"/>
@@ -17,13 +15,13 @@
 
     <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch">
-        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects.yaml"/>
+        <arg name="detectable_objects_file_path" default="$(find perception)/config/vicon_detectable_objects.yaml"/>
         <arg name="model_states_topic" default="/gazebo/model_states"/>
     </include>
 
     <!-- WORLD MONITOR -->
     <include file="$(find world_monitor)/launch/world_monitor.launch">
-        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/object_definitions.yaml"/>
+        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/vicon_object_definitions.yaml"/>
     </include>
 
     <!-- SCENE GRAPH -->

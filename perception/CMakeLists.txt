@@ -167,6 +167,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
    scripts/gazebo_perception.py
+   scripts/vicon_perception.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -19,10 +19,17 @@ base_frame: "base_link"
 surface_link: "table1"
 
 # Different Grasp orientations
-grasp_frame_transform_names: ["horizontal", "vertical", "diagonal"]
-grasp_frame_transforms: [0.02, 0, 0.0, 0.0, 0.0, 0.0, 
-                         0.02, 0, 0.0,  0, -1.5707, 0.0, 
-                         0.02, 0, 0.0, 0, -.7854, 0.0] 
+horizontal_grasp_frame_transform_name: "horizontal"
+horizontal_grasp_frame_transform: [0.02, 0, 0.0, 0.0, 0.0, 0.0]
+vertical_grasp_frame_transform_name: "vertical"
+vertical_grasp_frame_transform: [0.02, 0, 0.0,  0, -1.5707, 0.0]
+diagonal_grasp_frame_transform_name: "diagonal"
+diagonal_grasp_frame_transform: [0.02, 0, 0.0, 0, -.7854, 0.0]
+long_horizontal_grasp_frame_transform_name: "long_horizontal"
+long_horizontal_grasp_frame_transform: [0.07, 0, 0.0, 0.0, 0.0, 0.0]
+long_vertical_grasp_frame_transform_name: "long_vertical"
+long_vertical_grasp_frame_transform: [0.095, 0, 0.0, 0.0, -1.5707, 0.0]
+
 
 # Place offset from surface
 place_surface_offset: .005
@@ -34,9 +41,3 @@ approach_object_max_dist: 0.1
 # Valid height range when lifting an object after pick
 lift_object_min_dist: 0.01
 lift_object_max_dist: 0.08
-
-object_offset: [.05, 0, 0, 0, 0, 0]
-
-# BOX object specifications
-pick_object: "demo_cube"
-place_pose:  [.6, 0.11, 0.742311, 0, 0, 0]

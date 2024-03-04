@@ -35,13 +35,22 @@ class Perception:
     def __init__(self):
         rospy.init_node("gazebo_perception_node")
 
+        # Get the model_states_file_path from launch parameters
+        self.file_path = rospy.get_param('~detectable_objects_file_path', None)
+        if self.file_path is None:
+            rospy.logerr("Detectable objects file path not provided. Please specify the parameter '~detectable_objects_file_path'.")
+        
+        self.model_states_topic = rospy.get_param('~model_states_topic', "/gazebo/model_states")
+        if self.model_states_topic is None:
+            rospy.logerr("Model states topic not provided. Please specify the parameter '~model_states_topic'.")  
+
         self.model_states = ModelStates()
         self.object_dict = {}
 
         self.isSceneInitialized = False
 
         rospy.Subscriber(
-            "/gazebo/model_states", ModelStates, self.model_states_callback
+            self.model_states_topic , ModelStates, self.model_states_callback
         )
 
         self.vision_info_pub = rospy.Publisher(
@@ -71,10 +80,10 @@ class Perception:
         vision_info.database_location = "/vision_info_lookup"
         self.vision_info_pub.publish(vision_info)
 
-    def read_objects_yaml_file(self, file_path):
+    def read_yaml_file(self):
         try:
             # Open the YAML file for reading
-            with open(file_path, "r") as file:
+            with open(self.file_path, "r") as file:
                 # Load the YAML data
                 yaml_data = yaml.safe_load(file)
 
@@ -101,13 +110,7 @@ class Perception:
 
 if __name__ == "__main__":
     perception_node = Perception()
-
-    objects_relative_path = rospy.get_param(
-        "~detectable_objects_path", "/config/detectable_objects.yaml"
-    )
-
-    objects_file_path = rospkg.RosPack().get_path("perception") + objects_relative_path
-    perception_node.read_objects_yaml_file(objects_file_path)
+    perception_node.read_yaml_file()
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():

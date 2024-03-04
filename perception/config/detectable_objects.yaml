@@ -14,12 +14,8 @@
   id: 3
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
-- name: "mustard bottle"
-  id: 4
-  frame_id: "world"
-  size: [0.03, 0.2, 0.0]
 - name: "cracker box"
-  id: 5
+  id: 4
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
 ## Can use meshes, but for now, we are using primitive shapes

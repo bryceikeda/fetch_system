@@ -37,7 +37,7 @@ class ModelStatesPublisher:
                     # Extract relevant attributes
                     name = item["name"]
                     position = item["position"]
-
+                    
                     if not name:
                         rospy.logerr(f"[simulator] Empty object name detected.")
 
@@ -75,14 +75,17 @@ class ModelStatesPublisher:
 
 
 if __name__ == "__main__":
-    msp = ModelStatesPublisher()
+    model_states_publisher = ModelStatesPublisher()
 
-    model_states_file_path = (
-        rospkg.RosPack().get_path("simulator") + "/config/model_states.yaml"
-    )
-    msp.read_yaml_file(model_states_file_path)
+    # Get the model_states_file_path from launch parameters
+    model_states_file_path = rospy.get_param('~model_states_file_path', None)
+
+    if model_states_file_path is None:
+        rospy.logerr("Model states file path not provided. Please specify the parameter '~model_states_file_path'.")
+    else:
+        model_states_publisher.read_yaml_file(model_states_file_path)
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        msp.model_states_publisher()
+        model_states_publisher.model_states_publisher()
         rate.sleep()

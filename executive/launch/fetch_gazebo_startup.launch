@@ -1,25 +1,23 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- Launch Gazebo Simulator -->
+    <!-- SIMULATOR  -->
     <include file="$(find simulator)/launch/gazebo_simulator.launch" />
 
-    <!-- Launch Manipulation for Gazebo Robot -->
+    <!-- MANIPULATION -->
     <include file="$(find manipulation)/launch/manipulation.launch">
         <arg name="fake_execution" value="false"/>
     </include>
 
-    <!-- Launch Perception -->
+    <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch" />
 
-    <!-- Launch World Monitor -->
+    <!-- WORLD MONITOR -->
     <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen"/>
 
-    <!-- Move robot to ready state -->
+    <!-- RVIZ -->
+    <include file="$(find visualizer)/launch/visualizer.launch"/>
+
+    <!-- READY POSE -->
     <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
 
-    <!-- Launch RViz -->
-    <arg name="rviz_config" default="$(find executive)/config/rviz_config.rviz" />
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(arg rviz_config)">
-      <rosparam command="load" file="$(find fetch_moveit_config)/config/kinematics.yaml"/>
-    </node>
 </launch>

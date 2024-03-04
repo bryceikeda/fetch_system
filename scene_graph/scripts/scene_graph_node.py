@@ -37,7 +37,7 @@ class SceneGraphNode:
             "/scene_graph/query", QuerySceneGraph, self.handle_scene_graph_query_request
         )
 
-        self.scene_objects = PlanningSceneWorld()
+        self.scene_objects = None
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
@@ -66,7 +66,9 @@ class SceneGraphNode:
         return res
 
     def initialize_scene_graph(self):
-        self.get_scene_objects()
+        while self.scene_objects == None:
+            self.get_scene_objects()
+            rospy.sleep(5)
 
         for collision_object in self.scene_objects.world.collision_objects:
             if collision_object.type.key == "surface":
@@ -267,7 +269,7 @@ if __name__ == "__main__":
     rospy.sleep(3)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
-    scene_graph.calculate_supports_relationship()
+
     while not rospy.is_shutdown():
         scene_graph.calculate_supports_relationship()
         scene_graph.draw()

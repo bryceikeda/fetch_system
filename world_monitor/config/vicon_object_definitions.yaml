@@ -1,4 +1,4 @@
-- object_id: "table1"
+- object_id: "Table"
   key: "surface"
   header_frame_id: "world"
   primitive_types: [[1]]
@@ -7,7 +7,7 @@
   subframe_names: ["center", "left", "far left"]
   subframe_poses: [[-.25, -.3, 0.665, 0, 0, 0, 1], [-.25, -.1, 0.665, 0, 0, 0, 1], [-.25, -0.2, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
   mesh_poses: []
-- object_id: "chips can"
+- object_id: "Pringles" 
   key: "object"
   header_frame_id: "world"
   primitive_types: [[3]]
@@ -16,7 +16,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "cracker box"
+- object_id: "Cheezeit"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]
@@ -25,7 +25,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "mustard bottle"
+- object_id: "Mustard"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]
@@ -34,7 +34,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "meat can"
+- object_id: "Spam" 
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]

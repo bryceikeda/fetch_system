@@ -90,11 +90,10 @@ bool WorldMonitor::applyPlanningScene(moveit_msgs::PlanningScene &planning_scene
 bool WorldMonitor::initializePlanningScene()
 {
     // Don't initialize the planning scene until we have everything we need
-    if (object_detections.detections.empty() || scene_object_properties.collision_objects.empty() || objects_info.empty())
+    if (object_detections.detections.empty() || objects_info.empty() || scene_object_properties.collision_objects.empty())
     {
         return true;
     }
-
     moveit_msgs::PlanningScene planning_scene;
     for (auto detection : object_detections.detections)
     {
@@ -154,17 +153,17 @@ void WorldMonitor::addObjectTransform(const moveit_msgs::CollisionObject &collis
     transform.transform.rotation = collisionObject.pose.orientation;
     transformStampedArray.push_back(transform);
 
-    for (int i = 0; i < collisionObject.subframe_names.size(); i++)
-    {
-        geometry_msgs::TransformStamped transform;
-        transform.header.frame_id = collisionObject.id;
-        transform.child_frame_id = collisionObject.subframe_names[i];
-        transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;
-        transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;
-        transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;
-        transform.transform.rotation = collisionObject.subframe_poses[i].orientation;
-        transformStampedArray.push_back(transform);
-    }
+    // for (int i = 0; i < collisionObject.subframe_names.size(); i++)
+    // {
+    //     geometry_msgs::TransformStamped transform;
+    //     transform.header.frame_id = collisionObject.id;
+    //     transform.child_frame_id = collisionObject.subframe_names[i];
+    //     transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;
+    //     transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;
+    //     transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;
+    //     transform.transform.rotation = collisionObject.subframe_poses[i].orientation;
+    //     transformStampedArray.push_back(transform);
+    // }
 }
 
 void WorldMonitor::broadcastTransforms()

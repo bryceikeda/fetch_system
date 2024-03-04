@@ -218,6 +218,7 @@ catkin_install_python(PROGRAMS
 install(FILES
     launch/fetch_gazebo_startup.launch
     launch/fetch_fake_joints_startup.launch
+    launch/vicon_fetch_fake_joints_startup.launch
     #   # myfile1
 #   # myfile2
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

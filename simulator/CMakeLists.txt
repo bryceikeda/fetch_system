@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   tf2_eigen
+  tf_conversions
   )
 
 ## System dependencies are found with CMake's conventions

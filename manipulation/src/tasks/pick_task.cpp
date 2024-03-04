@@ -77,7 +77,7 @@ bool PickTask::init(const TaskParameters &parameters)
       ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
       return 1;
     }
-    
+
     std::string support_surface = related_nodes[0];
 
     // Move to pick stage
@@ -92,6 +92,7 @@ bool PickTask::init(const TaskParameters &parameters)
     auto alternatives_container = std::make_unique<Alternatives>("Pick Alternatives");
     for (auto grasp_frame_transform : parameters.grasp_frame_transforms_)
     {
+      ROS_ERROR_STREAM(grasp_frame_transform.first);
       auto grasp = std::make_unique<SerialContainer>("pick object");
       exposeTo(*grasp, {"eef", "hand", "group", "ik_frame"});
       grasp->properties().configureInitFrom(Stage::PARENT, {"eef", "hand", "group", "ik_frame"});

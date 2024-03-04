@@ -16,14 +16,14 @@ int main(int argc, char *argv[])
     world_monitor.get_scene_objects_service = nh.advertiseService("/world_monitor/get_scene_objects", &WorldMonitor::getSceneObjectsRequest, &world_monitor);
 
     bool initialize_scene = true;
-    std::string yaml_path;
-    if (!pnh.getParam("yaml_path", yaml_path))
+    std::string file_path;
+    if (!pnh.getParam("object_definitions_file_path", file_path))
     {
-        ROS_ERROR("Failed to retrieve yaml_path parameter.");
+        ROS_ERROR("Failed to retrieve object_definitions_file_path parameter.");
         return 1;
     }
 
-    world_monitor.loadObjectParameters(yaml_path);
+    world_monitor.loadObjectParameters(file_path);
 
     ros::Rate loop_rate(40);
     while (ros::ok())
@@ -35,6 +35,10 @@ int main(int argc, char *argv[])
         if (!initialize_scene)
         {
             world_monitor.broadcastTransforms();
+        }
+        else
+        {
+            ros::Duration(3.0).sleep();  // Corrected to ros::Duration
         }
 
         ros::spinOnce();
