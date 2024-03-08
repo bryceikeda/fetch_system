@@ -50,9 +50,9 @@ bool PickTask::init(const TaskParameters &parameters)
                                        {
       s.start()->scene()->printKnownObjects(std::cout);
 
-        if (s.start()->scene()->getCurrentState().hasAttachedBody(parameters.object_name_))
+        if (s.start()->scene()->getCurrentState().hasAttachedBody(parameters.target_object_name_))
         {
-          comment = "object with id '" + parameters.object_name_ + "' is already attached and cannot be picked";
+          comment = "object with id '" + parameters.target_object_name_ + "' is already attached and cannot be picked";
           return false;
         }
       return true; });
@@ -72,7 +72,7 @@ bool PickTask::init(const TaskParameters &parameters)
     std::vector<std::string> related_nodes;
     std::vector<std::string> place_subframes;
 
-    if (querySceneGraph(parameters.object_name_, "is_on", "", related_nodes, place_subframes) == false)
+    if (querySceneGraph(parameters.target_object_name_, "is_on", "", related_nodes, place_subframes) == false)
     {
       ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
       return 1;
@@ -123,7 +123,7 @@ bool PickTask::init(const TaskParameters &parameters)
         stage->properties().configureInitFrom(Stage::PARENT);
         stage->properties().set("marker_ns", "grasp_pose");
         stage->setPreGraspPose(parameters.hand_open_pose_);
-        stage->setObject(parameters.object_name_);
+        stage->setObject(parameters.target_object_name_);
         stage->setAngleDelta(M_PI / 12);
         stage->setMonitoredStage(current_state_stage_); // Hook into current state
 
@@ -142,7 +142,7 @@ bool PickTask::init(const TaskParameters &parameters)
       ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (hand,object)");
-        stage->allowCollisions(parameters.object_name_, getLinkModelNamesWithCollisionGeometry(parameters.hand_group_name_),
+        stage->allowCollisions(parameters.target_object_name_, getLinkModelNamesWithCollisionGeometry(parameters.hand_group_name_),
                                true);
         grasp->insert(std::move(stage));
       }
@@ -162,7 +162,7 @@ bool PickTask::init(const TaskParameters &parameters)
       ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("attach object");
-        stage->attachObject(parameters.object_name_, parameters.hand_frame_);
+        stage->attachObject(parameters.target_object_name_, parameters.hand_frame_);
         attach_object_stage_ = stage.get();
         grasp->insert(std::move(stage));
       }
@@ -172,7 +172,7 @@ bool PickTask::init(const TaskParameters &parameters)
       ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,support)");
-        stage->allowCollisions({parameters.object_name_}, {support_surface}, true);
+        stage->allowCollisions({parameters.target_object_name_}, {support_surface}, true);
         grasp->insert(std::move(stage));
       }
 
@@ -199,7 +199,7 @@ bool PickTask::init(const TaskParameters &parameters)
       ***************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (object,surface)");
-        stage->allowCollisions({parameters.object_name_}, {support_surface}, false);
+        stage->allowCollisions({parameters.target_object_name_}, {support_surface}, false);
         grasp->insert(std::move(stage));
       }
       alternatives_container->insert(std::move(grasp));

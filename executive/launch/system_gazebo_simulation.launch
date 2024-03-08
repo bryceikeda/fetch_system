@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- SIMULATOR  -->
+    <include file="$(find simulator)/launch/gazebo_simulator.launch" />
+
+    <!-- MANIPULATION -->
+    <include file="$(find manipulation)/launch/manipulation.launch">
+        <arg name="fake_execution" value="false"/>
+    </include>
+
+    <!-- PERCEPTION -->
+    <include file="$(find perception)/launch/gazebo_perception.launch" />
+
+    <!-- WORLD MONITOR -->
+    <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen"/>
+
+    <!-- Run Rviz and load the default config to see the state of the move_group node -->
+    <include file="$(find visualizer)/launch/visualizer.launch">
+        <arg name="config" value="true"/>
+        <arg name="debug" value="$(arg debug)"/>
+    </include>
+
+    <!-- READY POSE -->
+    <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
+
+</launch>

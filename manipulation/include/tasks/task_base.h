@@ -7,7 +7,9 @@
 #include <moveit_task_constructor_msgs/ExecuteTaskSolutionAction.h>
 #include <moveit/task_constructor/solvers/cartesian_path.h>
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
-
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
 // MoveIt
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
@@ -47,6 +49,8 @@ public:
   const robot_model::JointModelGroup *getJointModelGroup(const std::string &group_name);
 
   double getHeightOffsetForSurface(const std::string &object_name, const std::string &place_surface_name, const double place_surface_offset);
+  
+  std::map<std::string, moveit_msgs::AttachedCollisionObject> getAttachedObjects();
 
   moveit_msgs::MoveItErrorCodes plan(int max_solutions = 1);
   void preempt();
@@ -60,7 +64,7 @@ public:
 protected:
   Stage *current_state_stage_;
   const std::string task_name_;
-
+  std::string attached_object_name_;
 private:
   TaskPtr task_;
   ros::NodeHandle nh_;

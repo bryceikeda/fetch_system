@@ -1,13 +1,22 @@
-- object_id: "table1"
+- object_id: "table on the left"
   key: "surface"
   header_frame_id: "world"
   primitive_types: [[1]]
-  primitive_dimensions: [[.75, 1.52, .04]]
-  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
-  subframe_names: ["center", "left", "far left"]
-  subframe_poses: [[-.25, -.3, 0.665, 0, 0, 0, 1], [-.25, -.1, 0.665, 0, 0, 0, 1], [-.25, -0.2, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+  primitive_dimensions: [[.75, .6, .04]]
+  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1], ]
+  subframe_names: ["slight left", "left", "far left"]
+  subframe_poses: [[-.25, -.15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, .15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
   mesh_poses: []
-- object_id: "chips can"
+- object_id: "table on the right"
+  key: "surface"
+  header_frame_id: "world"
+  primitive_types: [[1]]
+  primitive_dimensions: [[.75, .6, .04]]
+  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
+  subframe_names: ["slight right", "right", "far right"]
+  subframe_poses: [[-.25, .15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, -.15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+  mesh_poses: []
+- object_id: "pringles"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[3]]
@@ -16,7 +25,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "cracker box"
+- object_id: "cheezeit"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]
@@ -25,7 +34,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "mustard bottle"
+- object_id: "mustard"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]
@@ -61,7 +70,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "glass"
+- object_id: "Glass"
   key: "mesh"
   header_frame_id: "world"
   primitive_types: []
@@ -70,7 +79,7 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "bottle"
+- object_id: "Bottle"
   key: "mesh"
   header_frame_id: "world"
   primitive_types: []

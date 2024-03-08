@@ -1,19 +1,13 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- Add world origin -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args="0 0 0 0 0 0 1 world base_link" />
 
     <!-- SIMULATOR -->
-    <include file="$(find simulator)/launch/fake_joints_simulator.launch"/>
     <node name="simulator" pkg="simulator" type="model_states_publisher.py" output="screen">
         <param name="model_states_file_path" value="$(find simulator)/config/model_states.yaml" />
     </node>
 
     <!-- MANIPULATION -->
-    <include file="$(find manipulation)/launch/manipulation.launch">
-        <arg name="fake_execution" value="true"/>
-    </include>
-    <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" /> 
+    <include file="$(find manipulation)/launch/manipulation.launch"/>
 
     <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch">
@@ -29,12 +23,10 @@
     <!-- SCENE GRAPH -->
     <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
 
-    <!-- RVIZ -->
-    <include file="$(find visualizer)/launch/visualizer.launch"/>
-
     <!-- EXECUTIVE -->
-    <node name="executive_node" pkg="executive" type="executive_node.py" output="screen"/>
+    <!-- <node name="executive_node" pkg="executive" type="executive_node_no_llm.py" output="screen"/> -->
 
-    <!-- READY POSE -->
-    <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
+    <!-- ACTION PLANNER -->
+    <include file="$(find action_planner)/launch/action_planner.launch"/>
+
 </launch>

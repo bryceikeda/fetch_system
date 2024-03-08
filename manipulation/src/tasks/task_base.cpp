@@ -19,12 +19,15 @@ TaskBase::~TaskBase()
 double
 TaskBase::getHeightOffsetForSurface(const std::string &object_name, const std::string &place_surface_name, const double place_surface_offset)
 {
-    moveit::planning_interface::PlanningSceneInterface psi;
-    moveit_msgs::CollisionObject object_co = psi.getAttachedObjects({object_name})[object_name].object;
+    #include <geometric_shapes/shapes.h>
+    #include <geometric_shapes/mesh_operations.h>
+    #include <geometric_shapes/shape_operations.h>
+
+    moveit_msgs::CollisionObject object_co = getAttachedObjects()[object_name].object;
 
     double object_place_offset = 0.0;
 
-    // Return and empty message if object not attached
+    // Return an empty message if object not attached
     if (object_co.primitives.empty() && object_co.meshes.empty())
     {
         ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Object with id '" << object_name << "' is not attached, so it cannot be placed");
@@ -137,6 +140,14 @@ const robot_model::JointModelGroup *TaskBase::getJointModelGroup(const std::stri
 std::vector<std::string> TaskBase::getLinkModelNamesWithCollisionGeometry(const std::string &group_name)
 {
     return task_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry();
+}
+
+/** Get attached objects */
+std::map<std::string, moveit_msgs::AttachedCollisionObject> 
+TaskBase::getAttachedObjects()	
+{
+    moveit::planning_interface::PlanningSceneInterface psi;
+    return psi.getAttachedObjects();
 }
 
 // Outputs informational messages related to the task.

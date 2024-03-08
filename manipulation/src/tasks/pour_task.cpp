@@ -38,24 +38,22 @@ bool PourTask::init(const TaskParameters &parameters)
    *               Current State                      *
    *                                                  *
    ***************************************************/
+  attached_object_name_ = getAttachedObjects().begin()->second.object.id;
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
     _current_state->setTimeout(10);
 
-    // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
     applicability_filter->setPredicate([&](const SolutionBase &s, std::string &comment)
                                        {
-      s.start()->scene()->printKnownObjects(std::cout);
-
-        if (!s.start()->scene()->getCurrentState().hasAttachedBody(parameters.object_name_))
+        if (attached_object_name_.empty())
         {
-          comment = "object with id '" + parameters.object_name_ + "' is not attached to be used for wiping";
+          comment = "Object is not attached to be used for placing";
           return false;
         }
-      return true; });
 
+      return true; });
     current_state_stage_ = applicability_filter.get();
     addStageToTask(std::move(applicability_filter));
   }
@@ -92,7 +90,7 @@ bool PourTask::init(const TaskParameters &parameters)
     auto stage = std::make_unique<stages::GeneratePose>("pose above object to pour into");
     stage->properties().configureInitFrom(Stage::PARENT, {"eef", "hand", "group", "ik_frame"}); //
     geometry_msgs::PoseStamped p;
-    p.header.frame_id = parameters.target_name_;
+    p.header.frame_id = parameters.target_object_name_;
     p.pose.orientation.x = 0.0;
     p.pose.orientation.z = 0.0;
     p.pose.orientation.w = 1.0;
@@ -118,14 +116,14 @@ bool PourTask::init(const TaskParameters &parameters)
     auto stage = std::make_unique<manipulation_stages::PourInto>("pouring");
     stage->properties().configureInitFrom(Stage::PARENT, {"eef", "hand", "group", "ik_frame"}); //
     stage->properties().property("group").configureInitFrom(Stage::PARENT, "group");            //
-    stage->setBottle(parameters.object_name_);
-    stage->setContainer(parameters.target_name_);
+    stage->setBottle(attached_object_name_);
+    stage->setContainer(parameters.target_object_name_);
     stage->setPourOffset(Eigen::Vector3d(0, 0.02, 0.01));
     stage->setTiltAngle(2.0);
     stage->setPourDuration(ros::Duration(4.0));
     {
       geometry_msgs::Vector3Stamped pouring_axis;
-      pouring_axis.header.frame_id = parameters.target_name_;
+      pouring_axis.header.frame_id = parameters.target_object_name_;
       pouring_axis.vector.x = 1.0;
       stage->setPouringAxis(pouring_axis);
     }

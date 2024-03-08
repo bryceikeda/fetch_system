@@ -8,6 +8,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/robot_state/attached_body.h>
 
 // MTC
 #include <moveit/task_constructor/task.h>

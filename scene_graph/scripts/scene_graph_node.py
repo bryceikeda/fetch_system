@@ -121,7 +121,7 @@ class SceneGraphNode:
             response = self.get_scene_objects_client.call(GetPlanningSceneRequest())
             self.scene_objects = response.scene
         except rospy.ServiceException as e:
-            rospy.logerr("Service call failed: %s" % e)
+            rospy.sleep(5)
 
     def add_object_node(self, name, attributes=None):
         if attributes is None:
@@ -234,6 +234,7 @@ class SceneGraphNode:
         )
 
         return is_above and is_within_x and is_within_y
+        #return is_above
 
     def draw(self):
         self.calculate_positions()

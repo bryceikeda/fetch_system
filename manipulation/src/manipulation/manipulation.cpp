@@ -39,13 +39,12 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
 
   // PICK, PLACE, MOVE_ARM, OPEN_GRIPPER, CLOSE_GRIPPER, TODO: SHAKE, POUR, PUSH, PULL, OPEN_DOOR, CLOSE_DOOR
   parameters.task_type_ = req.manipulation_plan_request.task_type;
-  parameters.object_name_ = req.manipulation_plan_request.object_name;
 
   // Use task name to label it within the list of tasks
   std::string task_name = req.manipulation_plan_request.task_name;
 
   // Provide place surface
-  parameters.target_name_ = req.manipulation_plan_request.target_name;
+  parameters.target_object_name_ = req.manipulation_plan_request.target_object_name;
 
   task_plans[task_name] = TaskFactory::createTask(parameters.task_type_, task_name.c_str(), nh_);
 

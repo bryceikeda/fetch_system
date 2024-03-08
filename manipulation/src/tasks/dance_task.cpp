@@ -50,9 +50,9 @@ bool DanceTask::init(const TaskParameters &parameters)
                                        {
       s.start()->scene()->printKnownObjects(std::cout);
 
-        if (s.start()->scene()->getCurrentState().hasAttachedBody(parameters.object_name_))
+        if (s.start()->scene()->getCurrentState().hasAttachedBody(parameters.target_object_name_))
         {
-          comment = "object with id '" + parameters.object_name_ + "' is attached and must be placed down first.";
+          comment = "object with id '" + parameters.target_object_name_ + "' is attached and must be placed down first.";
           return false;
         }
       return true; });

@@ -9,102 +9,90 @@ from moveit_task_constructor_msgs.msg import (
     ExecuteTaskSolutionGoal,
 )
 from geometry_msgs.msg import (
-    Pose,
-    Point,
-    Quaternion,
-)  # Import Pose, Point, and Quaternion
-from std_msgs.msg import Duration
+    Pose
+    )  # Import Pose, Point, and Quaternion
 from moveit_msgs.msg import MoveItErrorCodes
+import actionlib
+from action_planner.msg import ExecuteActionPlanFeedback, ExecuteActionPlanAction
 
 
-#  ManipulationPlanRequest.PICK
-#  ManipulationPlanRequest.PLACE
-#  ManipulationPlanRequest.POUR
-#  ManipulationPlanRequest.WIPE
-#  ManipulationPlanRequest.OPEN_HAND
-#  ManipulationPlanRequest.CLOSE_HAND
-#  ManipulationPlanRequest.WAVE
-#  ManipulationPlanRequest.DANCE
-
-
-def build_action_request(
-    task_type, object_name="", target_name="", description="", place_pose=Pose()
-):
+def build_action_request(task_type, target_object_name="", description="", place_pose=Pose()):
     req = ManipulationPlanRequest()
     req.task_type = task_type
-    req.object_name = object_name
-    req.target_name = target_name
+    req.target_object_name = target_object_name
     req.task_name = description
     req.place_pose = place_pose
     return req
 
+class ExecutiveNode:
+    def __init__(self):
+        rospy.init_node("executive_node")
 
-def main():
-    rospy.init_node("executive_node")
-    # Use a context manager for the spinner
-    manipulation_plan_service = rospy.ServiceProxy(
-        "get_manipulation_plan", GetManipulationPlan
-    )  # Fix service type
+        self.manipulation_plan_service = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)
+        self.plan_executer_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
+        self.task_solution = ExecuteTaskSolutionGoal()
 
-    # Use a more descriptive variable name for the action client
-    plan_executer_client = SimpleActionClient(
-        "execute_task_solution", ExecuteTaskSolutionAction
-    )
+        self.action_plan_server = actionlib.SimpleActionServer('execute_action_plan', ExecuteActionPlanAction, execute_cb=self.execute_action_plan_callback, auto_start=False)
+        self.action_plan_server.start()
+        self.action_plan_server.register_preempt_callback(self.preempt_action_plan)
 
-    pour_plan = [
-        build_action_request(ManipulationPlanRequest.PICK, "bottle", "", "Pick bottle"),
-        # #build_action_request(ManipulationPlanRequest.WIPE, "sponge", "table1", "Wipe table"),
-        build_action_request(
-            ManipulationPlanRequest.POUR, "bottle", "glass", "Pour bottle"
-        ),
-        build_action_request(ManipulationPlanRequest.PLACE, "bottle", "table1", "Place bottle")
-    ]
+    def preempt_action_plan(self):
+        self.plan_executer_client.cancel_goal()
+        
+    def handle_action_plan(self, msg):
+        self.received_action_plan = msg
 
-    wipe_plan = [
-        build_action_request(ManipulationPlanRequest.PICK, "sponge", "", "Pick sponge"),
-        # #build_action_request(ManipulationPlanRequest.WIPE, "sponge", "table1", "Wipe table"),
-        build_action_request(
-            ManipulationPlanRequest.WIPE, "sponge", "table1", "Pour bottle"
-        ),
-        build_action_request(ManipulationPlanRequest.PLACE, "sponge", "table1", "Place sponge")
-    ]
-
-    picking_sequence = [
-        build_action_request(ManipulationPlanRequest.PICK, "chips can", "", "Pick meat can"),
-        build_action_request(ManipulationPlanRequest.PLACE, "chips can", "table1", "Place meat can")
-    ]
-
-
-    plan_to_execute = ExecuteTaskSolutionGoal()
-
-    max_tries = 2
-
-    for task in picking_sequence:
-        current_tries = 0
-        while current_tries < max_tries:
-            response = manipulation_plan_service(task)
+    def compute_task_solution(self, task, max_tries=2):
+        for _ in range(max_tries):
+            response = self.manipulation_plan_service(task)
             if response.manipulation_plan_response.error_code.val == MoveItErrorCodes.SUCCESS:
-                rospy.loginfo("Plan received, executing plan")
-                current_tries = 0
-                break 
+                rospy.loginfo("[ExecutiveNode]: Plan computed")
+                self.task_solution.solution = response.manipulation_plan_response.solution
+                return MoveItErrorCodes.SUCCESS
+            rospy.loginfo("[ExecutiveNode]: Failed to get plan, trying again...")
+
+        rospy.loginfo("[ExecutiveNode]: Failed to get plan after {} tries, exiting".format(max_tries))
+        return MoveItErrorCodes.FAILURE
+
+    def execute_solution(self):
+        self.plan_executer_client.send_goal_and_wait(self.task_solution)
+        return self.plan_executer_client.get_result().error_code.val
+
+    def execute_action_plan_callback(self, goal):
+        status = MoveItErrorCodes.SUCCESS
+        for task in goal.action_plan:
+            if self.action_plan_server.is_preempt_requested():
+                rospy.loginfo('%s: Preempted' % self._action_name)
+                self.action_plan_server.set_preempted()
+                status = MoveItErrorCodes.PREEMPTED
+                break
+
+            feedback = ExecuteActionPlanFeedback()
+            feedback.current_action = task
+            self.action_plan_server.publish_feedback(feedback)
+
+            if self.compute_task_solution(task) == MoveItErrorCodes.FAILURE:
+                rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
+                status = MoveItErrorCodes.PLANNING_FAILED
+                break
+            
+            error_code = self.execute_solution()
+
+            if error_code == MoveItErrorCodes.SUCCESS:
+                rospy.loginfo("[ExecutiveNode]: Execution Success, moving on to the next task")
             else:
-                rospy.loginfo("Failed to get plan, trying again")
-                current_tries += 1
+                status = MoveItErrorCodes.CONTROL_FAILED
+                rospy.loginfo("[ExecutiveNode]: Execution Failed, exiting")
+                break
 
-        if current_tries == max_tries:
-            rospy.logerror("Failed to get plan, exiting")
-            return 1
-        else:
-            plan_to_execute.solution = response.manipulation_plan_response.solution
-            plan_executer_client.send_goal_and_wait(plan_to_execute)
+        self.action_plan_server.set_succeeded(status)
 
-            result = plan_executer_client.get_result().error_code
-
-            if result.val == MoveItErrorCodes.SUCCESS:
-                rospy.loginfo("Execution Success, moving on to the next task")
-            else:
-                rospy.logerror("Execution Failed, exiting")
-                return 1
+    def preempt_action_plan(self):
+        self.action_plan_server.cancel_goal()
 
 if __name__ == "__main__":
-    main()
+    executive_node = ExecutiveNode()
+
+    rate = rospy.Rate(10) # 10hz
+    while not rospy.is_shutdown():
+        rate.sleep()

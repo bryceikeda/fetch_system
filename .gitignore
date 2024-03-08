@@ -1,1 +1,3 @@
 .vscode/*
+action_planner/scripts/__pycache__/*
+underlay/*

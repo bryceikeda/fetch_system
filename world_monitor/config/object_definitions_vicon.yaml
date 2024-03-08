@@ -29,7 +29,7 @@
   key: "object"
   header_frame_id: "world"
   primitive_types: [[1]]
-  primitive_dimensions: [[.065, .03, 0.155]]
+  primitive_dimensions: [[.07, .04, 0.155]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
   subframe_names: []
   subframe_poses: []
@@ -52,11 +52,11 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "cylinder"
+- object_id: "Bottle"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[3]]
-  primitive_dimensions: [[0.2, 0.02, 0.0]]
+  primitive_dimensions: [[0.225, 0.0375, 0.0]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
   subframe_names: []
   subframe_poses: []
@@ -70,20 +70,20 @@
   subframe_names: []
   subframe_poses: []
   mesh_poses: []
-- object_id: "bottle"
-  key: "mesh"
-  header_frame_id: "world"
-  primitive_types: []
-  primitive_dimensions: []
-  primitive_poses: []
-  subframe_names: []
-  subframe_poses: []
+# - object_id: "bottle"
+#   key: "mesh"
+#   header_frame_id: "world"
+#   primitive_types: []
+#   primitive_dimensions: []
+#   primitive_poses: []
+#   subframe_names: []
+#   subframe_poses: []
   mesh_poses: []
-- object_id: "cup"
+- object_id: "Cup"
   key: "object"
   header_frame_id: "world"
   primitive_types: [[3]]
-  primitive_dimensions: [[0.1, 0.02, 0.0]]
+  primitive_dimensions: [[0.215, 0.05, 0.0]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
   subframe_names: []
   subframe_poses: []

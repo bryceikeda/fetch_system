@@ -35,8 +35,7 @@ struct TaskParameters
 
   // object + surface or object to pour into
   std::vector<std::string> support_surfaces_;
-  std::string object_name_;
-  std::string target_name_;
+  std::string target_object_name_;
 
   // Pick metrics
   std::map<std::string, Eigen::Isometry3d> grasp_frame_transforms_;

@@ -29,8 +29,8 @@ class ModelStatesPublisher:
 
     def get_fetch_transform_matrix(self):
         fetch_start_pose = Pose()
-        fetch_start_pose.position = Point(595.7954956358893, -324.4669189120417, 0.0)#990.6674009549946)
-        fetch_start_pose.orientation = Quaternion(-0.007666233324275756, 0.01175643060041889, 0.03471701406818371, 0.9992986253923851)
+        fetch_start_pose.position = Point(535.0299684081835, -54.64279332823344, 0.0)#990.6674009549946)
+        fetch_start_pose.orientation = Quaternion(-0.007206383137603431, 0.011539465053337201, 0.03170873773655549, 0.9994045244016496)
         self.fetch_start_pose = fetch_start_pose
         
         transform_matrix = self.get_transform_matrix(self.fetch_start_pose.position, self.fetch_start_pose.orientation)
@@ -48,9 +48,10 @@ class ModelStatesPublisher:
             [2 * (orientation.x * orientation.z - orientation.y * orientation.w), 2 * (orientation.y * orientation.z + orientation.x * orientation.w), 1 - 2 * (orientation.x**2 + orientation.y**2)],
         ])
 
-        transform_matrix = np.eye(4)
-        transform_matrix[:3, :3] = rotation_matrix[:3, :3]
-        transform_matrix[:3, 3] = [position.x / 1000.0, position.y / 1000.0, position.z / 1000.0]
+        translation_matrix = np.eye(4)
+        translation_matrix[:3, 3] = [position.x / 1000.0, position.y / 1000.0, position.z / 1000.0]
+
+        transform_matrix = np.dot(rotation_matrix, translation_matrix)
 
         return transform_matrix
     
@@ -59,7 +60,7 @@ class ModelStatesPublisher:
             rotation = R.from_matrix(rotation_matrix)
             quaternion = rotation.as_quat()
             return quaternion
-    
+
     def vicon_objects_to_world_transform(self):
         if self.object_model_states:
             # Reset the poses list
@@ -86,9 +87,18 @@ class ModelStatesPublisher:
                 transformed_pose.position = Point(*transformed_position)
                 transformed_pose.orientation = Quaternion(*transformed_quaternion)
 
+                transformed_no_matrix = Pose()
+                transformed_no_matrix.position.x = pose.position.x/1000.0
+                transformed_no_matrix.position.y = pose.position.y/1000.0
+                transformed_no_matrix.position.z = pose.position.z/1000.0
+                transformed_no_matrix.orientation.x = pose.orientation.x
+                transformed_no_matrix.orientation.y = pose.orientation.y
+                transformed_no_matrix.orientation.z = pose.orientation.z
+                transformed_no_matrix.orientation.w = pose.orientation.w
                 # Append the transformed pose to self.model_states.pose
-                model_states_transformed.pose.append(transformed_pose)
+                model_states_transformed.pose.append(transformed_no_matrix)
                 model_states_transformed.name.append(self.object_model_states.name)
+
             self.model_states = model_states_transformed
             self.model_states.name = self.object_model_states.name
 

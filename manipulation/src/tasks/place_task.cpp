@@ -40,24 +40,22 @@ bool PlaceTask::init(const TaskParameters &parameters)
    *               Current State                      *
    *                                                  *
    ***************************************************/
+  attached_object_name_ = getAttachedObjects().begin()->second.object.id;
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
     _current_state->setTimeout(10);
 
-    // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
     applicability_filter->setPredicate([&](const SolutionBase &s, std::string &comment)
                                        {
-      s.start()->scene()->printKnownObjects(std::cout);
-
-        if (!s.start()->scene()->getCurrentState().hasAttachedBody(parameters.object_name_))
+        if (attached_object_name_.empty())
         {
-          comment = "object with id '" + parameters.object_name_ + "' is not attached to be used for wiping";
+          comment = "Object is not attached to be used for placing";
           return false;
         }
-      return true; });
 
+      return true; });
     current_state_stage_ = applicability_filter.get();
     addStageToTask(std::move(applicability_filter));
   }
@@ -65,7 +63,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
   std::vector<std::string> related_nodes;
   std::vector<std::string> place_subframes;
 
-  if (querySceneGraph(parameters.target_name_, "", "subframe_names", related_nodes, place_subframes) == false)
+  if (querySceneGraph(parameters.target_object_name_, "", "subframe_names", related_nodes, place_subframes) == false)
   {
     ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
     return 1;
@@ -75,11 +73,11 @@ bool PlaceTask::init(const TaskParameters &parameters)
     auto stage = std::make_unique<stages::Connect>(
         "move to place", stages::Connect::GroupPlannerVector{{parameters.arm_group_name_, sampling_planner}});
     stage->setTimeout(5.0);
-    if(parameters.object_name_ == "bottle")
+    if(attached_object_name_ == "bottle")
     {
       stage->setPathConstraints(parameters.constraints_.at("upright_constraint"));
     }
-    else if (parameters.object_name_ == "sponge")
+    else if (attached_object_name_ == "sponge")
     {
       stage->setPathConstraints(parameters.constraints_.at("downward_constraint"));
     }
@@ -121,13 +119,13 @@ bool PlaceTask::init(const TaskParameters &parameters)
         auto stage = std::make_unique<stages::GeneratePlacePose>("generate place pose");
         stage->properties().configureInitFrom(Stage::PARENT, {"ik_frame"});
         stage->properties().set("marker_ns", "place_pose");
-        stage->setObject(parameters.object_name_);
+        stage->setObject(attached_object_name_);
 
         // Set target pose
         geometry_msgs::PoseStamped p;
-        p.header.frame_id = parameters.target_name_ + "/" + subframe; // collision_object.header.frame_id;  // object_reference_frame was used before
+        p.header.frame_id = parameters.target_object_name_ + "/" + subframe; // collision_object.header.frame_id;  // object_reference_frame was used before
         p.pose.orientation.w = 1;
-        p.pose.position.z = getHeightOffsetForSurface(parameters.object_name_, parameters.target_name_, parameters.place_surface_offset_);
+        p.pose.position.z = getHeightOffsetForSurface(attached_object_name_, parameters.target_object_name_, parameters.place_surface_offset_);
 
         stage->setPose(p);
         stage->setMonitoredStage(current_state_stage_);
@@ -155,7 +153,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
         *****************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("forbid collision (hand,object)");
-        stage->allowCollisions(parameters.object_name_, getLinkModelNamesWithCollisionGeometry(parameters.hand_group_name_), false);
+        stage->allowCollisions(attached_object_name_, getLinkModelNamesWithCollisionGeometry(parameters.hand_group_name_), false);
         place->insert(std::move(stage));
       }
 
@@ -164,7 +162,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
         *****************************************************/
       {
         auto stage = std::make_unique<stages::ModifyPlanningScene>("detach object");
-        stage->detachObject(parameters.object_name_, parameters.hand_frame_);
+        stage->detachObject(attached_object_name_, parameters.hand_frame_);
         place->insert(std::move(stage));
       }
 
@@ -176,11 +174,11 @@ bool PlaceTask::init(const TaskParameters &parameters)
         stage->properties().configureInitFrom(Stage::PARENT, {"group"});
         stage->setMinMaxDistance(.12, .25);
         stage->setIKFrame(parameters.hand_frame_);
-        if(parameters.object_name_ == "bottle")
+        if(attached_object_name_ == "bottle")
         {
           stage->setPathConstraints(parameters.constraints_.at("upright_constraint"));
         }
-        else if (parameters.object_name_ == "sponge")
+        else if (attached_object_name_ == "sponge")
         {
           stage->setPathConstraints(parameters.constraints_.at("downward_constraint"));
         }

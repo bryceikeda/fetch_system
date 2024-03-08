@@ -36,24 +36,22 @@ bool WipeTask::init(const TaskParameters &parameters)
    *                                                  *
    ***************************************************/
   Stage *attach_object_stage_;
+  attached_object_name_ = getAttachedObjects().begin()->second.object.id;
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
     _current_state->setTimeout(10);
 
-    // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
     applicability_filter->setPredicate([&](const SolutionBase &s, std::string &comment)
                                        {
-        s.start()->scene()->printKnownObjects(std::cout);
+        if (attached_object_name_.empty())
+        {
+          comment = "Object is not attached to be used for placing";
+          return false;
+        }
 
-          if (!s.start()->scene()->getCurrentState().hasAttachedBody(parameters.object_name_))
-          {
-            comment = "object with id '" + parameters.object_name_ + "' is not attached, so it cannot be placed";
-            return false;
-          }
-        return true; });
-
+      return true; });
     current_state_stage_ = applicability_filter.get();
     addStageToTask(std::move(applicability_filter));
   }
@@ -68,22 +66,22 @@ bool WipeTask::init(const TaskParameters &parameters)
     ***************************************************/
     {
       auto stage = std::make_unique<stages::ModifyPlanningScene>("allow collision (object,surface)");
-      stage->allowCollisions(parameters.object_name_, parameters.target_name_, true);
+      stage->allowCollisions(attached_object_name_, parameters.target_object_name_, true);
       attach_object_stage_ = stage.get();
       wipe_table->insert(std::move(stage));
     }
     {
       auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
       stage->setTimeout(5.0);
-      stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical")->second, parameters.hand_frame_);
+      stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical")->second, parameters.hand_group_name_);
       stage->properties().configureInitFrom(Stage::PARENT);
 
       geometry_msgs::PoseStamped place_pose;
-      place_pose.header.frame_id = parameters.target_name_ + "/" + "center";
+      place_pose.header.frame_id = parameters.target_object_name_ + "/" + "center";
 
       place_pose.pose = parameters.place_pose_;
       place_pose.pose.orientation.w = 1;
-      place_pose.pose.position.z = getHeightOffsetForSurface(parameters.object_name_, parameters.target_name_, parameters.place_surface_offset_);
+      place_pose.pose.position.z = getHeightOffsetForSurface(attached_object_name_, parameters.target_object_name_, parameters.place_surface_offset_);
       stage->setGoal(place_pose);
       wipe_table->insert(std::move(stage));
     }

@@ -150,20 +150,25 @@ void WorldMonitor::addObjectTransform(const moveit_msgs::CollisionObject &collis
     transform.transform.translation.x = collisionObject.pose.position.x;
     transform.transform.translation.y = collisionObject.pose.position.y;
     transform.transform.translation.z = collisionObject.pose.position.z;
-    transform.transform.rotation = collisionObject.pose.orientation;
+
+    transform.transform.rotation.x = collisionObject.pose.orientation.x;
+    transform.transform.rotation.y = collisionObject.pose.orientation.y;
+    transform.transform.rotation.z = collisionObject.pose.orientation.z;
+    transform.transform.rotation.w = collisionObject.pose.orientation.w;
+
     transformStampedArray.push_back(transform);
 
-    // for (int i = 0; i < collisionObject.subframe_names.size(); i++)
-    // {
-    //     geometry_msgs::TransformStamped transform;
-    //     transform.header.frame_id = collisionObject.id;
-    //     transform.child_frame_id = collisionObject.subframe_names[i];
-    //     transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;
-    //     transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;
-    //     transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;
-    //     transform.transform.rotation = collisionObject.subframe_poses[i].orientation;
-    //     transformStampedArray.push_back(transform);
-    // }
+    for (int i = 0; i < collisionObject.subframe_names.size(); i++)
+    {
+        geometry_msgs::TransformStamped transform;
+        transform.header.frame_id = collisionObject.id;
+        transform.child_frame_id = collisionObject.subframe_names[i];
+        transform.transform.translation.x = collisionObject.subframe_poses[i].position.x;
+        transform.transform.translation.y = collisionObject.subframe_poses[i].position.y;
+        transform.transform.translation.z = collisionObject.subframe_poses[i].position.z;
+        transform.transform.rotation = collisionObject.subframe_poses[i].orientation;
+        transformStampedArray.push_back(transform);
+    }
 }
 
 void WorldMonitor::broadcastTransforms()

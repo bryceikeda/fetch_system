@@ -52,8 +52,15 @@ def getVICON(iter_VICON):
                 object_orientations[obj_name] = np.array(obj_inst["global_rot"][0])
 
     for obj_name in object_names:
+        # print(obj_name)
+        # print("Locations")
+        # print(object_locations[obj_name])
+        # print("orientations")
+        # print(object_orientations[obj_name])
         object_locations[obj_name] = object_locations[obj_name] / iter_VICON
         object_orientations[obj_name] = object_orientations[obj_name] / iter_VICON
+
+
 
     fetch_msg = ModelState()
     fetch_msg.model_name = fetch_head
@@ -70,7 +77,7 @@ def getVICON(iter_VICON):
     objects_msg = ModelStates()
     for obj_name in object_names:
         if obj_name == fetch_head:
-            continue
+            continue 
         msg = ModelState()
         msg.model_name = obj_name
 

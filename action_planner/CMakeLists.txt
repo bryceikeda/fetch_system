@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(manipulation)
+project(action_planner)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,28 +8,22 @@ project(manipulation)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib_msgs
-  geometry_msgs
-  message_generation
-  moveit_msgs
-  moveit_ros_planning_interface
-  moveit_task_constructor_core
-  moveit_task_constructor_msgs
-  roscpp
-  rosparam_shortcuts
   rospy
   std_msgs
-  std_srvs
-  tf2_eigen
-  scene_graph
-  rviz_marker_tools
+  manipulation
+  geometry_msgs
+  moveit_msgs
+  moveit_task_constructor_msgs
+  message_generation
+  genmsg
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
-## Uncomment this if the package.py has a setup.py. This macro ensures
+## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
@@ -59,33 +53,34 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-   FILES
-    ManipulationPlanRequest.msg
-    ManipulationPlanResponse.msg
-   #   Message1.msg
-#   Message2.msg
- )
+# add_message_files(
+#    FILES
+#    ActionPlanRequest.msg
+# #   Message1.msg
+# #   Message2.msg
+# )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-   FILES
-   GetManipulationPlan.srv
+# add_service_files(
+#   FILES
 #   Service1.srv
 #   Service2.srv
-)
-
-# ## Generate actions in the 'action' folder
-# add_action_files(
-#     FILES
-#     PlanPickPlace.action
-# #   Action2.action
 # )
+
+## Generate actions in the 'action' folder
+add_action_files(
+   FILES
+   ExecuteActionPlan.action
+#   Action1.action
+#   Action2.action
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
    DEPENDENCIES
-   actionlib_msgs   geometry_msgs   moveit_msgs   moveit_task_constructor_msgs   std_msgs
+    manipulation
+    actionlib_msgs
+   #   std_msgs
  )
 
 ################################################
@@ -118,9 +113,9 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES manipulation tasks manipulation_stages
-  CATKIN_DEPENDS actionlib_msgs message_runtime# geometry_msgs moveit_msgs moveit_ros_planning_interface moveit_task_constructor_core moveit_task_constructor_msgs roscpp rosparam_shortcuts rospy std_msgs tf2_eigen
+#  INCLUDE_DIRS include
+#  LIBRARIES action_planner
+   CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -131,43 +126,24 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+# include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(manipulation
-   src/manipulation/manipulation.cpp
- )
-
-add_library(manipulation_stages
-    src/stages/pour_into.cpp
- )
-
-add_library(tasks
-   src/tasks/pick_task.cpp
-   src/tasks/place_task.cpp
-   src/tasks/move_to_goal_task.cpp
-   src/tasks/wave_task.cpp
-   src/tasks/wipe_task.cpp
-   src/tasks/pour_task.cpp
-   src/tasks/dance_task.cpp
-   src/tasks/open_hand_task.cpp
-   src/tasks/close_hand_task.cpp
-   src/tasks/task_base.cpp
-   src/tasks/task_factory.cpp
-   src/tasks/task_parameters_loader.cpp
-)
+# add_library(${PROJECT_NAME}
+#   src/${PROJECT_NAME}/action_planner.cpp
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/manipulation_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/action_planner_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -177,24 +153,12 @@ add_executable(${PROJECT_NAME}_node src/manipulation_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-
-
-target_link_libraries(${PROJECT_NAME}_node
-   manipulation
-   manipulation_stages
-   tasks
-    ${catkin_LIBRARIES}
- )
-
-target_link_libraries(tasks 
-    manipulation_stages
-    )
 
 #############
 ## Install ##
@@ -206,11 +170,9 @@ target_link_libraries(tasks
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-   scripts/ready_pose.py
-   scripts/tuck_arm.py
-   scripts/query_scene_graph.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
+  scripts/action_planner_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
@@ -235,9 +197,8 @@ catkin_install_python(PROGRAMS
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
-    launch/manipulation.launch
-    launch/pick_place_test.launch
-    # myfile1
+  launch/action_planner.launch
+#   # myfile1
 #   # myfile2
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
@@ -247,7 +208,7 @@ install(FILES
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_manipulation.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_action_planner.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

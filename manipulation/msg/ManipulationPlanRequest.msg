@@ -13,11 +13,8 @@ int32 task_type
 # Name to label the task
 string task_name
 
-# Name of object being picked
-string object_name
-
-# Place on surface or pour in objects
-string target_name
+# Surface, object to pick, object to pour into
+string target_object_name
 
 # Place Position
 geometry_msgs/Pose place_pose

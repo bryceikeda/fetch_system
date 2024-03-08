@@ -2,7 +2,7 @@
   id: 0
   frame_id: "world"
   size: [0.05, 0.1, 0.02]
-- name: "Spam"
+- name: "Cup"
   id: 1
   frame_id: "world"
   size: [0.0, 0.0, 0.0]
@@ -18,3 +18,12 @@
   id: 4
   frame_id: "world"
   size: [0.03, 0.2, 0.0]
+- name: "Bottle"
+  id: 5
+  frame_id: "world"
+  size: [0.0, 0.0, 0.0]
+
+  # - name: "Spam"
+  # id: 1
+  # frame_id: "world"
+  # size: [0.0, 0.0, 0.0]

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Add world origin -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args=".051139185752523126 -.002306003567427172 0 0.0066575966355858895 -0.005546839516146535 -0.019601809046542056 0.9997702961751532 world base_link" />
+
+    <!-- SIMULATOR -->
+    <include file="$(find simulator)/launch/fake_joints_simulator.launch"/>
+    <node name="simulator" pkg="simulator" type="vicon_model_states_publisher.py" output="screen"/>
+    
+    <!-- MANIPULATION -->
+    <include file="$(find manipulation)/launch/manipulation.launch">
+    </include>
+    <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" /> 
+
+    <!-- PERCEPTION -->
+    <include file="$(find perception)/launch/gazebo_perception.launch">
+        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_vicon.yaml"/>
+        <arg name="model_states_topic" default="/gazebo/model_states"/>
+    </include>
+
+    <!-- WORLD MONITOR -->
+    <include file="$(find world_monitor)/launch/world_monitor.launch">
+        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/object_definitions_vicon.yaml"/>
+    </include>
+
+    <!-- SCENE GRAPH -->
+    <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
+
+    <!-- EXECUTIVE -->
+    <!-- <node name="executive_node" pkg="executive" type="executive_node_llm.py" output="screen"/> -->
+
+    <!-- ACTION PLANNER -->
+    <!-- <include file="$(find action_planner)/launch/action_planner.launch"/> -->
+
+    <!-- Run Rviz and load the default config to see the state of the move_group node -->
+    <include file="$(find visualizer)/launch/visualizer.launch">
+        <arg name="config" value="true"/>
+    </include>
+
+    <!-- READY POSE -->
+    <node name="ready_pose" pkg="manipulation" type="ready_pose.py" output="screen"/>
+
+
+</launch>
