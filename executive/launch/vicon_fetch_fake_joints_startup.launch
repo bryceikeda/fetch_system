@@ -15,13 +15,13 @@
 
     <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch">
-        <arg name="detectable_objects_file_path" default="$(find perception)/config/vicon_detectable_objects.yaml"/>
+        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_vicon.yaml"/>
         <arg name="model_states_topic" default="/gazebo/model_states"/>
     </include>
 
     <!-- WORLD MONITOR -->
     <include file="$(find world_monitor)/launch/world_monitor.launch">
-        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/vicon_object_definitions.yaml"/>
+        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/object_definitions_vicon.yaml"/>
     </include>
 
     <!-- SCENE GRAPH -->

@@ -2,16 +2,15 @@
 
 import rospy
 import rospkg
-from geometry_msgs.msg import Pose, Vector3, Point, Quaternion, Twist
 from tf2_ros import TransformListener, Buffer
 import tf2_ros
 from moveit_msgs.srv import GetPlanningScene, GetPlanningSceneRequest
-from moveit_msgs.msg import PlanningSceneWorld
 import networkx as nx
 import matplotlib.pyplot as plt
-import itertools
 from scene_graph.srv import QuerySceneGraph, QuerySceneGraphResponse
 from shape_msgs.msg import SolidPrimitive
+import numpy as np
+import transforms3d as tf3d
 
 class SceneGraphNode:
     def __init__(self):
@@ -87,6 +86,12 @@ class SceneGraphNode:
                     collision_object.pose.position.z
                     + collision_object.primitive_poses[0].position.z,
                 )
+                orientation = (
+                    collision_object.pose.orientation.x,
+                    collision_object.pose.orientation.y,
+                    collision_object.pose.orientation.z,
+                    collision_object.pose.orientation.w
+                )
                 if collision_object.primitives[0].type == 1:
                     shape = "box"
                 else:
@@ -108,9 +113,15 @@ class SceneGraphNode:
                     collision_object.pose.position.y,
                     collision_object.pose.position.z,
                 )
+                orientation = (
+                    collision_object.pose.orientation.x,
+                    collision_object.pose.orientation.y,
+                    collision_object.pose.orientation.z,
+                    collision_object.pose.orientation.w,
+                )
 
             attributes.update(
-                {"position": position, "dimensions": dimensions, "shape": shape}
+                {"position": position, "orientation": orientation, "dimensions": dimensions, "shape": shape}
             )
 
             # Add the object node to the graph
@@ -142,6 +153,29 @@ class SceneGraphNode:
             + (pos1[2] - pos2[2]) ** 2
         ) ** 0.5
 
+    def get_surface_object_is_on(self, object_node):
+        for surface_node, attributes in self.graph.nodes(data=True):
+            if attributes.get("type") == "surface":
+                supported_nodes = self.get_objects_supported_by_surface(
+                    surface_node
+                )
+                for supported_node in supported_nodes:
+                    if supported_node == object_node:
+                        return surface_node
+        return None
+
+    def get_objects_supported_by_surface(self, surface_node):
+        supported_nodes = []
+
+        # Iterate through all edges connected to the support surface node
+        for _, other_node, edge_data in self.graph.out_edges(
+            surface_node, data=True
+        ):
+            # Check if the edge represents a "supports" relationship
+            if edge_data.get("label") == "supports":
+                supported_nodes.append(other_node)
+        return supported_nodes
+
     def calculate_supports_relationship(self):
         # Iterate through each node in the graph
         for node, attributes in self.graph.nodes(data=True):
@@ -169,29 +203,30 @@ class SceneGraphNode:
                                 f"Removed edge between {surface_node} and {other_node}"
                             )
 
-    def get_surface_object_is_on(self, object_node):
-        for surface_node, attributes in self.graph.nodes(data=True):
-            if attributes.get("type") == "surface":
-                supported_nodes = self.get_objects_supported_by_surface(
-                    surface_node
-                )
-                for supported_node in supported_nodes:
-                    if supported_node == object_node:
-                        return surface_node
-        return None
+    def get_inverse_transform_matrix(self, position, orientation):
+        inverse_translation_matrix = np.array([
+            [1, 0, 0, -position[0]],
+            [0, 1, 0, -position[1]],
+            [0, 0, 1, -position[2]],
+            [0, 0, 0, 1]
+        ])
 
-    def get_objects_supported_by_surface(self, surface_node):
-        supported_nodes = []
+        rotation_matrix = tf3d.quaternions.quat2mat((orientation[3], orientation[0], orientation[1], orientation[2]))
+        expand_rotation_matrix = np.eye(4)
+        expand_rotation_matrix[:3, :3] = rotation_matrix
+        inverse_transform_matrix = np.dot(np.linalg.inv(expand_rotation_matrix), inverse_translation_matrix)
+        return inverse_transform_matrix
 
-        # Iterate through all edges connected to the support surface node
-        for _, other_node, edge_data in self.graph.out_edges(
-            surface_node, data=True
-        ):
-            # Check if the edge represents a "supports" relationship
-            if edge_data.get("label") == "supports":
-                supported_nodes.append(other_node)
-        return supported_nodes
+    def transform_object(self, object_position, parent_position, parent_orientation):
+        # Get transformation matrices for the parent and child
+        parent_inverse_transform_matrix = self.get_inverse_transform_matrix(parent_position, parent_orientation)
 
+        object_point = np.array([*object_position, 1])
+        # Combine transformations: child relative to parent
+        object_transformed_position = np.dot(parent_inverse_transform_matrix, object_point)
+
+        return object_transformed_position[:3]
+    
     def is_object_on_surface(self, surface_node, object_node):
         # Get positions and dimensions of the object and support surface nodes
         object_position = self.graph.nodes[object_node]["position"]
@@ -199,42 +234,43 @@ class SceneGraphNode:
         object_dimensions = self.graph.nodes[object_node]["dimensions"]
 
         surface_position = self.graph.nodes[surface_node]["position"]
+        surface_orientation = self.graph.nodes[surface_node]["orientation"]
         surface_dimensions = self.graph.nodes[surface_node][
             "dimensions"
         ]
+
+        object_position = self.transform_object(object_position, surface_position, surface_orientation)
+    
         if object_shape == "box":
             # Check if the object is above the support surface but below a little above the middle of the object
             is_above = (
-                surface_position[2]
-                < object_position[2]
-                < surface_position[2]
-                + surface_dimensions[2] / 2
+                0
+                < object_position[2] # move object and table to 0
+                < surface_dimensions[2] / 2
                 + object_dimensions[SolidPrimitive.BOX_Z] / 2
                 + 0.05
             )
         elif object_shape == "cylinder":
             is_above = (
-                surface_position[2]
+                0
                 < object_position[2]
-                < surface_position[2]
-                + surface_dimensions[2] / 2
+                < surface_dimensions[2] / 2
                 + object_dimensions[SolidPrimitive.CYLINDER_HEIGHT] / 2
                 + 0.05
             )
 
         is_within_x = (
-            surface_position[0] - surface_dimensions[0] / 2
+            -surface_dimensions[0] / 2
             < object_position[0]
-            < surface_position[0] + surface_dimensions[0] / 2
+            < surface_dimensions[0] / 2
         )
         is_within_y = (
-            surface_position[1] - surface_dimensions[1] / 2
+            -surface_dimensions[1] / 2
             < object_position[1]
-            < surface_position[1] + surface_dimensions[1] / 2
+            < surface_dimensions[1] / 2
         )
 
         return is_above and is_within_x and is_within_y
-        #return is_above
 
     def draw(self):
         self.calculate_positions()
@@ -262,15 +298,13 @@ class SceneGraphNode:
 
         plt.show()
 
-
 if __name__ == "__main__":
     scene_graph = SceneGraphNode()
-
     rate = rospy.Rate(1)
     rospy.sleep(3)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
-
+    
     while not rospy.is_shutdown():
         scene_graph.calculate_supports_relationship()
         scene_graph.draw()
