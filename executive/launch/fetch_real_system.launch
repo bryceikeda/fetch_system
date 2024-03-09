@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- SIMULATOR -->
+    <node name="simulator" pkg="simulator" type="model_states_publisher.py" output="screen">
+        <param name="model_states_file_path" value="$(find simulator)/config/model_states.yaml" />
+    </node>
+
+    <!-- MANIPULATION -->
+    <include file="$(find manipulation)/launch/manipulation.launch" />
+
+    <!-- PERCEPTION -->
+    <include file="$(find perception)/launch/gazebo_perception.launch">
+        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_no_tracking.yaml"/>
+        <arg name="model_states_topic" default="/gazebo/model_states"/>
+    </include>
+
+    <!-- WORLD MONITOR -->
+    <include file="$(find world_monitor)/launch/world_monitor.launch">
+        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/object_definitions_no_tracking.yaml"/>
+    </include>
+
+    <!-- SCENE GRAPH -->
+    <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
+
+    <!-- RVIZ -->
+    <include file="$(find visualizer)/launch/visualizer.launch"/>
+
+    <!-- EXECUTIVE -->
+    <node name="executive_node" pkg="executive" type="executive_node.py" output="screen"/>
+    
+</launch>

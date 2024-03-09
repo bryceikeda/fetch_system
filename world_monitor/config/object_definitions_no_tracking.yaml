@@ -1,6 +1,6 @@
 - object_id: "table on the left"
   key: "surface"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[.75, .6, .04]]
   primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1], ]
@@ -9,7 +9,7 @@
   mesh_poses: []
 - object_id: "table on the right"
   key: "surface"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[.75, .6, .04]]
   primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
@@ -18,7 +18,7 @@
   mesh_poses: []
 - object_id: "pringles"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[3]]
   primitive_dimensions: [[0.235, 0.04, 0.0]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -27,7 +27,7 @@
   mesh_poses: []
 - object_id: "cheezeit"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[0.16, 0.065, 0.215]] # real size [[0.16, 0.065, 0.215]] 
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -36,7 +36,7 @@
   mesh_poses: []
 - object_id: "mustard"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[.065, .03, 0.155]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -45,7 +45,7 @@
   mesh_poses: []
 - object_id: "meat can"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[.1, .05, .085]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -54,7 +54,7 @@
   mesh_poses: []
 - object_id: "sponge"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[1]]
   primitive_dimensions: [[0.05, 0.1, 0.02]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -63,7 +63,7 @@
   mesh_poses: []
 - object_id: "cylinder"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[3]]
   primitive_dimensions: [[0.2, 0.02, 0.0]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]
@@ -72,7 +72,7 @@
   mesh_poses: []
 - object_id: "Glass"
   key: "mesh"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: []
   primitive_dimensions: []
   primitive_poses: []
@@ -81,7 +81,7 @@
   mesh_poses: []
 - object_id: "Bottle"
   key: "mesh"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: []
   primitive_dimensions: []
   primitive_poses: []
@@ -90,7 +90,7 @@
   mesh_poses: []
 - object_id: "cup"
   key: "object"
-  header_frame_id: "world"
+  header_frame_id: "odom"
   primitive_types: [[3]]
   primitive_dimensions: [[0.1, 0.02, 0.0]]
   primitive_poses: [[0.0, 0.0, 0.0, 0, 0, 0, 1]]

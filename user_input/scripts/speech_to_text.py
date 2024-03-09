@@ -84,6 +84,7 @@ class SpeechToTextNode:
 
 if __name__ == "__main__":
     speech_to_text_node = SpeechToTextNode(1024, 16000, 1, pyaudio.paInt16, None, 100)
+    rospy.sleep(3)
     rate = rospy.Rate(10) # 10hz
     while not rospy.is_shutdown():
         speech_to_text_node.run()

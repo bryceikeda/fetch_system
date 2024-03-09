@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   world_monitor  
   actionlib_msgs
   actionlib
+  action_planner
   message_generation
 )
 
@@ -119,7 +120,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #   INCLUDE_DIRS include
 #   LIBRARIES executive # bt_nodes
-#   CATKIN_DEPENDS actionlib_msgs message_runtime# geometry_msgs manipulation moveit_msgs roscpp rospy std_msgs std_srvs
+   CATKIN_DEPENDS actionlib_msgs message_runtime action_planner# geometry_msgs manipulation moveit_msgs roscpp rospy std_msgs std_srvs
 # #  DEPENDS system_lib
 )
 

@@ -1,8 +1,22 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- Add world origin -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcaster" args="0 0 0 0 0 0 1 world base_link" />
+    <!-- Run MTC pick and place -->
+    <!-- By default, we are not in debug mode -->
+    <arg name="debug" default="false" />
+    <arg name="fake_execution" default="false"/>
 
+    <!-- Run the main MoveIt executable -->
+    <arg name="pipeline" default="$(optenv PLANNING_PIPELINE ompl)" />
+    <include file="$(find fetch_moveit_config)/launch/move_group.launch">
+        <arg name="allow_trajectory_execution" value="true"/>
+        <arg name="fake_execution" value="$(arg fake_execution)"/>
+        <arg name="info" value="true"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="pipeline" value="$(arg pipeline)" />
+    </include>
+
+    <param name="move_group/capabilities" value="move_group/ExecuteTaskSolutionCapability" />
+    
     <!-- SIMULATOR -->
     <include file="$(find simulator)/launch/fake_joints_simulator.launch"/>
     <node name="simulator" pkg="simulator" type="model_states_publisher.py" output="screen">

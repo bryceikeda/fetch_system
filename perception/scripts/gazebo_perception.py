@@ -112,7 +112,9 @@ if __name__ == "__main__":
     perception_node = Perception()
     perception_node.read_yaml_file()
 
-    rate = rospy.Rate(10)
+    rospy.sleep(3)
+
+    rate = rospy.Rate(50)
     while not rospy.is_shutdown():
         perception_node.object_detections_publisher()
         perception_node.vision_info_publisher()

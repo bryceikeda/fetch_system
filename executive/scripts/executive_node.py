@@ -32,9 +32,9 @@ class ExecutiveNode:
         self.plan_executer_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
         self.task_solution = ExecuteTaskSolutionGoal()
 
-        self.action_plan_server = actionlib.SimpleActionServer('execute_action_plan', ExecuteActionPlanAction, execute_cb=self.execute_action_plan_callback, auto_start=False)
+        self.action_plan_server = actionlib.SimpleActionServer("execute_action_plan", ExecuteActionPlanAction, execute_cb=self.execute_action_plan_callback, auto_start=False)
         self.action_plan_server.start()
-        self.action_plan_server.register_preempt_callback(self.preempt_action_plan)
+        #self.action_plan_server.register_preempt_callback(self.preempt_action_plan)
 
     def preempt_action_plan(self):
         self.plan_executer_client.cancel_goal()
@@ -93,6 +93,9 @@ class ExecutiveNode:
 if __name__ == "__main__":
     executive_node = ExecutiveNode()
 
-    rate = rospy.Rate(10) # 10hz
+    rospy.sleep(6)
+    print(executive_node.action_plan_server.is_active())
+
+    rate = rospy.Rate(100) # 10hz
     while not rospy.is_shutdown():
         rate.sleep()

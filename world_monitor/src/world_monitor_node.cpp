@@ -25,20 +25,18 @@ int main(int argc, char *argv[])
 
     world_monitor.loadObjectParameters(file_path);
 
-    ros::Rate loop_rate(40);
+    sleep(3);
+
+    ros::Rate loop_rate(100);
     while (ros::ok())
     {
         if (initialize_scene)
         {
             initialize_scene = world_monitor.initializePlanningScene();
         }
-        if (!initialize_scene)
-        {
-            world_monitor.broadcastTransforms();
-        }
         else
         {
-            ros::Duration(3.0).sleep();  // Corrected to ros::Duration
+            world_monitor.broadcastTransforms();
         }
 
         ros::spinOnce();

@@ -14,6 +14,7 @@ class ActionPlannerNode:
         self.llm_output_subscriber = rospy.Subscriber('action_planner/llm_output', String, self.handle_llm_output)
         self.action_plan_client = actionlib.SimpleActionClient('execute_action_plan', ExecuteActionPlanAction)
         self.action_plan_client.wait_for_server()
+        rospy.loginfo("[ActionPlannerNode]: Action Plan Client Started")
 
         self.llm_output_msg = String()
         self.llm_output_msg.data = "pick mustard\nplace on table on the left\npick pringles\nplace on table on the left\npick cheezeit\nplace on table on the left\nwave at me"
@@ -94,6 +95,8 @@ class ActionPlannerNode:
 
 if __name__ == "__main__":
     action_planner_node = ActionPlannerNode()
+
+    rospy.sleep(3)
 
     rate = rospy.Rate(10) # 10hz
     while not rospy.is_shutdown():

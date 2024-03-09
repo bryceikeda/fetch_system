@@ -17,19 +17,6 @@ if __name__ == "__main__":
     # Create move group interface for a fetch robot
     move_group = MoveGroupInterface("arm_with_torso", "base_link")
 
-    # Define ground plane
-    # This creates objects in the planning scene that mimic the ground
-    # If these were not in place gripper could hit the ground
-    # planning_scene = PlanningSceneInterface("base_link")
-    # planning_scene.removeCollisionObject("my_front_ground")
-    # planning_scene.removeCollisionObject("my_back_ground")
-    # planning_scene.removeCollisionObject("my_right_ground")
-    # planning_scene.removeCollisionObject("my_left_ground")
-    # planning_scene.addCube("my_front_ground", 2, 1.1, 0.0, -1.0)
-    # planning_scene.addCube("my_back_ground", 2, -1.2, 0.0, -1.0)
-    # planning_scene.addCube("my_left_ground", 2, 0.0, 1.2, -1.0)
-    # planning_scene.addCube("my_right_ground", 2, 0.0, -1.2, -1.0)
-
     # TF joint names
     joint_names = [
         "torso_lift_joint",
@@ -43,8 +30,6 @@ if __name__ == "__main__":
     ]
     # Lists of joint angles in the same order as in joint_names
     home_pose = [[0.0, 1.1266, -0.4946, -2.9679, 1.3058, 1.267, 1.2769, 3.1415]]
-
-    time.sleep(5)
 
     for pose in home_pose:
         if rospy.is_shutdown():

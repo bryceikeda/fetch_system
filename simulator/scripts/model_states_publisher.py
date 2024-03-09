@@ -85,7 +85,9 @@ if __name__ == "__main__":
     else:
         model_states_publisher.read_yaml_file(model_states_file_path)
 
-    rate = rospy.Rate(10)
+    rospy.sleep(3)
+
+    rate = rospy.Rate(50)
     while not rospy.is_shutdown():
         model_states_publisher.model_states_publisher()
         rate.sleep()

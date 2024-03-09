@@ -304,8 +304,9 @@ if __name__ == "__main__":
     rospy.sleep(3)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
-    
+    scene_graph.calculate_supports_relationship()        
+    scene_graph.draw()
+
     while not rospy.is_shutdown():
         scene_graph.calculate_supports_relationship()
-        scene_graph.draw()
         rate.sleep()

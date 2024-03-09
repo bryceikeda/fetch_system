@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     manipulation->update_planning_scene_service = nh.serviceClient<std_srvs::Trigger>("update_planning_scene");
     // manipulation->update_planning_scene_service.waitForExistence();
 
-    ros::Duration(5.0).sleep();
+    sleep(3);
     ros::Rate loop_rate(40);
 
     while (ros::ok())
