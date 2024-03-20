@@ -1,3 +1,7 @@
 .vscode/*
 action_planner/scripts/__pycache__/*
 underlay/*
+action_planner/scripts/language_model/__pycache__/config.cpython-38.pyc
+action_planner/scripts/language_model/__pycache__/dataset.cpython-38.pyc
+action_planner/scripts/language_model/__pycache__/language_model.cpython-38.pyc
+action_planner/scripts/language_model/__pycache__/utils.cpython-38.pyc

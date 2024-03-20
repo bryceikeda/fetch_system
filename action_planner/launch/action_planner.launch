@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Given the published joint states, publish tf for the robot links -->
-  <!-- <node name="ros_to_lm" pkg="action_planner" type="ros_to_lm.py" output="screen" />
-  <node name="lm_to_ros" pkg="action_planner" type="lm_to_ros.py" output="screen" /> -->
   <node name="action_planner_node" pkg="action_planner" type="action_planner_node.py" output="screen" />
 </launch>

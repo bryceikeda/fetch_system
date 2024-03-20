@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <!-- Run MTC pick and place -->
-    <node name="pick_place_test" pkg="manipulation" type="pick_place_test" output="screen">
-        <rosparam command="load" file="$(find manipulation)/config/fetch_config.yaml" />
-    </node>
-</launch>

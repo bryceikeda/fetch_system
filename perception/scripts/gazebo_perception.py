@@ -71,7 +71,6 @@ class Perception:
             if gazebo_object:
                 gazebo_object.detection.bbox.center = self.model_states.pose[i]
                 detections.detections.append(gazebo_object.detection)
-
         self.object_detections_pub.publish(detections)
 
     def vision_info_publisher(self):

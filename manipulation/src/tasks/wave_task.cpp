@@ -48,28 +48,12 @@ bool WaveTask::init(const TaskParameters &parameters)
     // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
-    applicability_filter->setPredicate([&](const SolutionBase &s, std::string &comment)
-                                       {
-      s.start()->scene()->printKnownObjects(std::cout);
-
-        if (s.start()->scene()->getCurrentState().hasAttachedBody(parameters.target_object_name_))
-        {
-          comment = "object with id '" + parameters.target_object_name_ + "' is attached and must be placed down first.";
-          return false;
-        }
-      return true; });
+    applicability_filter->setPredicate([&](const SolutionBase &s, std::string &comment){return true; });
 
     current_state_stage_ = applicability_filter.get();
     addStageToTask(std::move(applicability_filter));
   }
   {
-    // Open hand stage
-    {
-      auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
-      stage->setGroup(parameters.hand_group_name_);
-      stage->setGoal(parameters.hand_open_pose_);
-      addStageToTask(std::move(stage));
-    }
 
     geometry_msgs::PoseStamped hand_wave_start_pose;
     hand_wave_start_pose.header.frame_id = parameters.base_frame_;
@@ -108,9 +92,10 @@ bool WaveTask::init(const TaskParameters &parameters)
       }
     }
     {
-      auto stage = std::make_unique<stages::MoveTo>("home", sampling_planner);
-      stage->setGroup(parameters.hand_group_name_);
+      auto stage = std::make_unique<stages::MoveTo>("move home", sampling_planner);
+      stage->properties().configureInitFrom(Stage::PARENT, {"group"});
       stage->setGoal(parameters.arm_ready_pose_);
+      stage->restrictDirection(stages::MoveTo::FORWARD);
       addStageToTask(std::move(stage));
     }
   }

@@ -15,6 +15,7 @@ from moveit_msgs.msg import MoveItErrorCodes
 import actionlib
 from action_planner.msg import ExecuteActionPlanFeedback, ExecuteActionPlanAction
 
+from moveit_msgs.msg import ExecuteTrajectoryAction
 
 def build_action_request(task_type, target_object_name="", description="", place_pose=Pose()):
     req = ManipulationPlanRequest()
@@ -35,6 +36,11 @@ class ExecutiveNode:
         self.action_plan_server = actionlib.SimpleActionServer("execute_action_plan", ExecuteActionPlanAction, execute_cb=self.execute_action_plan_callback, auto_start=False)
         self.action_plan_server.start()
         #self.action_plan_server.register_preempt_callback(self.preempt_action_plan)
+
+    def execute_trajectory_action(self, goal):
+        print("Executing trajectory action")
+        self.action_plan_server.set_succeeded()
+
 
     def preempt_action_plan(self):
         self.plan_executer_client.cancel_goal()
@@ -93,8 +99,7 @@ class ExecutiveNode:
 if __name__ == "__main__":
     executive_node = ExecutiveNode()
 
-    rospy.sleep(6)
-    print(executive_node.action_plan_server.is_active())
+    rospy.sleep(3)
 
     rate = rospy.Rate(100) # 10hz
     while not rospy.is_shutdown():

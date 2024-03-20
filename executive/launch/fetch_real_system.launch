@@ -5,8 +5,10 @@
         <param name="model_states_file_path" value="$(find simulator)/config/model_states.yaml" />
     </node>
 
-    <!-- MANIPULATION -->
-    <include file="$(find manipulation)/launch/manipulation.launch" />
+    <!-- MANIPULATION-->
+    <node name="manipulation_node" pkg="manipulation" type="manipulation_node" output="screen">
+        <rosparam command="load" file="$(find manipulation)/config/fetch_config.yaml" />
+    </node>
 
     <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch">
@@ -14,10 +16,11 @@
         <arg name="model_states_topic" default="/gazebo/model_states"/>
     </include>
 
-    <!-- WORLD MONITOR -->
-    <include file="$(find world_monitor)/launch/world_monitor.launch">
-        <arg name="object_definitions_file_path" value="$(find world_monitor)/config/object_definitions_no_tracking.yaml"/>
-    </include>
+    <!-- WORLD MONITOR
+    <arg name="object_definitions_file_path" default="$(find world_monitor)/config/object_definitions_no_tracking.yaml"/>
+    <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen">
+        <param name="object_definitions_file_path" value="$(arg object_definitions_file_path)" />
+    </node> -->
 
     <!-- SCENE GRAPH -->
     <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
