@@ -26,7 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -53,11 +53,13 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
+add_message_files(
+   FILES
+  UnityRelationship.msg
+  UnityRelationships.msg
+   #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -78,7 +80,7 @@ add_service_files(
 generate_messages(
    DEPENDENCIES
 #   geometry_msgs#   moveit_msgs#   sensor_msgs#   shape_msgs
-   std_msgs
+   std_msgs 
 )
 
 ################################################
@@ -169,7 +171,7 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/scene_graph_node.py
+  src/scene_graph_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} 
   )
 

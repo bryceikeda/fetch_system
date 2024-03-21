@@ -5,6 +5,7 @@ from action_planner.msg import ExecuteActionPlanGoal
 from manipulation.msg import ManipulationPlanRequest
 from geometry_msgs.msg import Pose
 
+
 class ActionPlanParser:
     def __init__(self):
         self.picked_object = ""
@@ -20,7 +21,9 @@ class ActionPlanParser:
             self.picked_object = task[5:]
             self.add_action_request(ManipulationPlanRequest.PICK, task[5:], task)
         elif task.startswith("place on "):
-            self.add_action_request(ManipulationPlanRequest.PLACE, task[9:], self.picked_object + " " + task)
+            self.add_action_request(
+                ManipulationPlanRequest.PLACE, task[9:], self.picked_object + " " + task
+            )
         elif task.startswith("pour in "):
             self.add_action_request(ManipulationPlanRequest.POUR, task[8:], task)
         elif task == "wave at me":
@@ -32,7 +35,9 @@ class ActionPlanParser:
         else:
             rospy.loginfo("Invalid task: %s", task)
 
-    def build_action_request(self, task_type, target_object_name="", description="", place_pose=Pose()):
+    def build_action_request(
+        self, task_type, target_object_name="", description="", place_pose=Pose()
+    ):
         req = ManipulationPlanRequest()
         req.task_type = task_type
         req.target_object_name = target_object_name
@@ -41,5 +46,7 @@ class ActionPlanParser:
         return req
 
     def add_action_request(self, task_type, target_object_name, description):
-        self.action_plan_goal.action_plan.append(self.build_action_request(task_type, target_object_name, description))
+        self.action_plan_goal.action_plan.append(
+            self.build_action_request(task_type, target_object_name, description)
+        )
         rospy.loginfo(f"{task_type}: {description}")

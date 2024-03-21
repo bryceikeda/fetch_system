@@ -2,7 +2,6 @@
 
 import yaml
 import rospy
-import rospkg
 from gazebo_msgs.msg import ModelStates
 from vision_msgs.msg import (
     Detection3DArray,
@@ -15,6 +14,7 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import Pose, Vector3, Point, Quaternion
 from moveit_msgs.msg import CollisionObject, PlanningSceneWorld
 from shape_msgs.msg import SolidPrimitive
+from perception.srv import GetDetectionClasses, GetDetectionClassesResponse
 
 
 class DetectableObjectBuilder:
@@ -30,19 +30,24 @@ class DetectableObjectBuilder:
         self.detection.bbox.size.y = size[1]
         self.detection.bbox.size.z = size[2]
 
-
-class Perception:
+class PerceptionNode:
     def __init__(self):
         rospy.init_node("gazebo_perception_node")
 
         # Get the model_states_file_path from launch parameters
-        self.file_path = rospy.get_param('~detectable_objects_file_path', None)
+        self.file_path = rospy.get_param("~detectable_objects_file_path", None)
         if self.file_path is None:
-            rospy.logerr("Detectable objects file path not provided. Please specify the parameter '~detectable_objects_file_path'.")
-        
-        self.model_states_topic = rospy.get_param('~model_states_topic', "/gazebo/model_states")
+            rospy.logerr(
+                "Detectable objects file path not provided. Please specify the parameter '~detectable_objects_file_path'."
+            )
+
+        self.model_states_topic = rospy.get_param(
+            "~model_states_topic", "/gazebo/model_states"
+        )
         if self.model_states_topic is None:
-            rospy.logerr("Model states topic not provided. Please specify the parameter '~model_states_topic'.")  
+            rospy.logerr(
+                "Model states topic not provided. Please specify the parameter '~model_states_topic'."
+            )
 
         self.model_states = ModelStates()
         self.object_dict = {}
@@ -50,7 +55,7 @@ class Perception:
         self.isSceneInitialized = False
 
         rospy.Subscriber(
-            self.model_states_topic , ModelStates, self.model_states_callback
+            self.model_states_topic, ModelStates, self.model_states_callback
         )
 
         self.vision_info_pub = rospy.Publisher(
@@ -58,6 +63,12 @@ class Perception:
         )
         self.object_detections_pub = rospy.Publisher(
             "/perception/object_detections", Detection3DArray, queue_size=1
+        )
+
+        self.manipulation_plan_service = rospy.Service(
+            "/perception/get_detection_classes",
+            GetDetectionClasses,
+            self.get_detection_classes,
         )
 
     def model_states_callback(self, msg):
@@ -78,6 +89,9 @@ class Perception:
         vision_info.method = "parameter server"
         vision_info.database_location = "/vision_info_lookup"
         self.vision_info_pub.publish(vision_info)
+
+    def get_detection_classes(self, req):
+        return GetDetectionClassesResponse(self.object_dict.keys())
 
     def read_yaml_file(self):
         try:
@@ -108,7 +122,7 @@ class Perception:
 
 
 if __name__ == "__main__":
-    perception_node = Perception()
+    perception_node = PerceptionNode()
     perception_node.read_yaml_file()
 
     rospy.sleep(3)

@@ -40,8 +40,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <scene_graph/QuerySceneGraph.h>
 
-#include <tasks/task_base.h>
-#include <tasks/task_factory.h>
+#include "tasks/task_base.h"
+#include "tasks/task_factory.h"
 #include "tasks/pick_task.h"
 #include "tasks/place_task.h"
 #include "tasks/move_to_goal_task.h"

@@ -28,7 +28,7 @@
     </include>
 
     <!-- SCENE GRAPH -->
-    <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/>
+    <!-- <node name="scene_graph" pkg="scene_graph" type="scene_graph_node.py" output="screen"/> -->
 
     <!-- RVIZ -->
     <include file="$(find visualizer)/launch/visualizer.launch"/>
