@@ -11,7 +11,7 @@ from action_planner.msg import (
 )
 from moveit_msgs.msg import MoveItErrorCodes
 
-# from language_model.language_model import LanguageModel
+from language_model.language_model import LanguageModel
 from action_planner.action_plan_parser import ActionPlanParser
 
 
@@ -24,20 +24,21 @@ class ActionPlannerNode:
         self.action_plan_client = actionlib.SimpleActionClient(
             "execute_action_plan", ExecuteActionPlanAction
         )
-        # self.action_plan_client.wait_for_server()
+        self.action_plan_client.wait_for_server()
         rospy.loginfo("[ActionPlannerNode]: Action Plan Client Started")
 
-        # self.language_model = LanguageModel()
+        self.language_model = LanguageModel()
         self.action_plan_parser = ActionPlanParser()
 
         self.language_model_output = []
-        self.speech_command = (
-            "pick up the pringles and place it on the table on the left."
-        )
-
-        self.action_plan_goal = ExecuteActionPlanGoal()
-        self.action_plan_feedback = ExecuteActionPlanFeedback()
-        self.action_plan_result = ExecuteActionPlanResult()
+        #self.language_model_output = ["pick pringles", "done"]
+        # self.speech_command = (
+        #     "pick up the pringles and place it on the table on the left."
+        # )
+        self.speech_command = ""
+        self.goal = ExecuteActionPlanGoal()
+        self.feedback = ExecuteActionPlanFeedback()
+        self.result = ExecuteActionPlanResult()
 
         self.is_executing = False
 
@@ -68,7 +69,7 @@ class ActionPlannerNode:
                 self.query_language_model()
                 self.speech_command = ""
             elif self.language_model_output != []:
-                self.action_plan_goal = self.action_plan_parser.get_action_plan_goal(
+                self.goal = self.action_plan_parser.get_action_plan_goal(
                     self.language_model_output
                 )
                 self.language_model_output = []
@@ -79,10 +80,11 @@ class ActionPlannerNode:
 
     def execute_action_plan(self):
         self.action_plan_client.send_goal(
-            self.action_plan_goal, feedback_cb=self.feedback_callback
+            self.goal, feedback_cb=self.feedback_callback
         )
 
     def feedback_callback(self, feedback):
+        self.feedback = feedback
         rospy.loginfo(
             "[ActionPlannerNode]: Feedback -> Action executing is %s",
             feedback.current_action.task_name,
@@ -90,13 +92,13 @@ class ActionPlannerNode:
 
     def check_execution(self):
         self.action_plan_client.wait_for_result()
-        result = self.action_plan_client.get_result()
+        self.result = self.action_plan_client.get_result()
         if self.action_plan_client.get_state() == actionlib.GoalStatus.SUCCEEDED:
-            if result == MoveItErrorCodes.SUCCESS:
+            if self.result.error_code.val == MoveItErrorCodes.SUCCESS:
                 rospy.loginfo("[ActionPlannerNode]: Action Plan Execution Succeeded")
-            elif result == MoveItErrorCodes.PLANNING_FAILED:
+            elif self.result.error_code.val == MoveItErrorCodes.PLANNING_FAILED:
                 rospy.loginfo("[ActionPlannerNode]: Action Plan Execution Failed")
-            elif result == MoveItErrorCodes.CONTROL_FAILED:
+            elif self.result.error_code.val == MoveItErrorCodes.CONTROL_FAILED:
                 rospy.loginfo(
                     "[ActionPlannerNode]: Action Plan Execution Control Failed"
                 )
@@ -107,7 +109,6 @@ class ActionPlannerNode:
         elif self.action_plan_client.get_state() == actionlib.GoalStatus.PREEMPTED:
             rospy.loginfo("[ActionPlannerNode]: Action Plan Execution Preempted")
             self.is_executing = False
-
 
 if __name__ == "__main__":
     action_planner_node = ActionPlannerNode()

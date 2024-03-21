@@ -202,7 +202,6 @@ bool PlaceTask::init(const TaskParameters &parameters)
     auto stage = std::make_unique<stages::MoveTo>("move home", sampling_planner);
     stage->properties().configureInitFrom(Stage::PARENT, {"group"});
     stage->setGoal(parameters.arm_ready_pose_);
-    stage->restrictDirection(stages::MoveTo::FORWARD);
     addStageToTask(std::move(stage));
   }
 

@@ -18,6 +18,14 @@
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_extents.h>
 #include <geometric_shapes/shape_operations.h>
+#include <shape_msgs/Mesh.h>
+#include <moveit_msgs/CollisionObject.h>
+
+#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/PlanningSceneWorld.h>
+#include <moveit_msgs/ApplyPlanningScene.h>
+#include <moveit_msgs/GetPlanningScene.h>
+
 
 using namespace moveit::task_constructor;
 
@@ -49,8 +57,12 @@ public:
   const robot_model::JointModelGroup *getJointModelGroup(const std::string &group_name);
 
   double getHeightOffsetForSurface(const std::string &object_name, const std::string &place_surface_name, const double place_surface_offset);
-  
   std::map<std::string, moveit_msgs::AttachedCollisionObject> getAttachedObjects();
+
+  // Self collision functions
+  bool applySelfCollisionAvoidance(bool add);
+  moveit_msgs::CollisionObject getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collision_object);
+  moveit_msgs::PlanningScene updatePlanningScene();  
 
   moveit_msgs::MoveItErrorCodes plan(int max_solutions = 1);
   void preempt();

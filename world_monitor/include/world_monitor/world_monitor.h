@@ -49,7 +49,7 @@ public:
     // ROS Communication
     ros::Subscriber object_detections_sub;
     ros::Subscriber vision_info_sub;
-    ros::ServiceClient planning_scene_service;
+    ros::ServiceClient planning_scene_client;
     ros::ServiceServer update_planning_scene_service;
     ros::ServiceServer get_scene_objects_service;
     tf2_ros::TransformBroadcaster tfb;

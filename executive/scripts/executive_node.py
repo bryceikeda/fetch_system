@@ -13,9 +13,13 @@ from geometry_msgs.msg import (
     )  # Import Pose, Point, and Quaternion
 from moveit_msgs.msg import MoveItErrorCodes
 import actionlib
-from action_planner.msg import ExecuteActionPlanFeedback, ExecuteActionPlanAction
-
-from moveit_msgs.msg import ExecuteTrajectoryAction
+from action_planner.msg import (
+    ExecuteActionPlanFeedback,
+    ExecuteActionPlanResult,
+    ExecuteActionPlanAction,
+    ExecuteActionPlanGoal,
+)
+from std_srvs.srv import Trigger, TriggerResponse
 
 def build_action_request(task_type, target_object_name="", description="", place_pose=Pose()):
     req = ManipulationPlanRequest()
@@ -29,28 +33,31 @@ class ExecutiveNode:
     def __init__(self):
         rospy.init_node("executive_node")
 
-        self.manipulation_plan_service = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)
+        self.manipulation_plan_client = rospy.ServiceProxy("get_manipulation_plan", GetManipulationPlan)
         self.plan_executer_client = SimpleActionClient("execute_task_solution", ExecuteTaskSolutionAction)
-        self.task_solution = ExecuteTaskSolutionGoal()
-
+        self.stop_robot_server = rospy.Service('/executive/stop_robot', Trigger, self.handle_stop_robot_request)
         self.action_plan_server = actionlib.SimpleActionServer("execute_action_plan", ExecuteActionPlanAction, execute_cb=self.execute_action_plan_callback, auto_start=False)
         self.action_plan_server.start()
-        #self.action_plan_server.register_preempt_callback(self.preempt_action_plan)
+
+        
+        self.task_solution = ExecuteTaskSolutionGoal()
+        self.feedback = ExecuteActionPlanFeedback()
+        self.result = ExecuteActionPlanResult()
 
     def execute_trajectory_action(self, goal):
         print("Executing trajectory action")
         self.action_plan_server.set_succeeded()
 
-
-    def preempt_action_plan(self):
+    def handle_stop_robot_request(self, req):
         self.plan_executer_client.cancel_goal()
+        return TriggerResponse(True, "Robot Stopped")
         
     def handle_action_plan(self, msg):
         self.received_action_plan = msg
 
     def compute_task_solution(self, task, max_tries=2):
         for _ in range(max_tries):
-            response = self.manipulation_plan_service(task)
+            response = self.manipulation_plan_client(task)
             if response.manipulation_plan_response.error_code.val == MoveItErrorCodes.SUCCESS:
                 rospy.loginfo("[ExecutiveNode]: Plan computed")
                 self.task_solution.solution = response.manipulation_plan_response.solution
@@ -73,9 +80,8 @@ class ExecutiveNode:
                 status = MoveItErrorCodes.PREEMPTED
                 break
 
-            feedback = ExecuteActionPlanFeedback()
-            feedback.current_action = task
-            self.action_plan_server.publish_feedback(feedback)
+            self.feedback.current_action = task
+            self.action_plan_server.publish_feedback(self.feedback)
 
             if self.compute_task_solution(task) == MoveItErrorCodes.FAILURE:
                 rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
@@ -91,10 +97,8 @@ class ExecutiveNode:
                 rospy.loginfo("[ExecutiveNode]: Execution Failed, exiting")
                 break
 
-        self.action_plan_server.set_succeeded(status)
-
-    def preempt_action_plan(self):
-        self.action_plan_server.cancel_goal()
+        self.result.error_code.val = status
+        self.action_plan_server.set_succeeded(self.result)
 
 if __name__ == "__main__":
     executive_node = ExecutiveNode()

@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   scene_graph
   rviz_marker_tools
+  geometric_shapes
 )
 
 ## System dependencies are found with CMake's conventions

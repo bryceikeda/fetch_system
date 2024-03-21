@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
     world_monitor.object_detections_sub = nh.subscribe("/perception/object_detections", 10, &WorldMonitor::objectDetectionsCallback, &world_monitor);
     world_monitor.vision_info_sub = nh.subscribe("/perception/vision_info", 10, &WorldMonitor::visionInfoCallback, &world_monitor);
-    world_monitor.planning_scene_service = nh.serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+    world_monitor.planning_scene_client = nh.serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
     world_monitor.update_planning_scene_service = nh.advertiseService("/world_monitor/update_planning_scene", &WorldMonitor::updatePlanningSceneRequest, &world_monitor);
 
     world_monitor.get_scene_objects_service = nh.advertiseService("/world_monitor/get_scene_objects", &WorldMonitor::getSceneObjectsRequest, &world_monitor);

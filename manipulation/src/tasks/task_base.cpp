@@ -16,13 +16,96 @@ TaskBase::~TaskBase()
 {
 }
 
+bool TaskBase::applySelfCollisionAvoidance(bool add)
+{
+    moveit::planning_interface::PlanningSceneInterface psi;
+    std::vector<moveit_msgs::CollisionObject> collision_objects;
+    if(add)
+    {
+        moveit_msgs::CollisionObject keepout_object;
+        keepout_object.id = "keepout";
+        keepout_object.header.frame_id = "base_link";
+        keepout_object.pose.position.z = 0.375;
+        keepout_object.pose.orientation.w = 1.0;
+        keepout_object.operation = moveit_msgs::CollisionObject::ADD;
+        getObjectMesh(keepout_object.id, keepout_object);
+        collision_objects.push_back(keepout_object);
+
+        moveit_msgs::CollisionObject ground_object;
+        ground_object.id = "ground";
+        ground_object.header.frame_id = "base_link";
+        ground_object.pose.position.z = -0.03;
+        ground_object.pose.orientation.w = 1.0;
+        ground_object.operation = moveit_msgs::CollisionObject::ADD;
+        getObjectMesh(ground_object.id, ground_object);
+        collision_objects.push_back(ground_object);
+
+        moveit_msgs::CollisionObject head_camera_object;
+        head_camera_object.id = "head_camera";
+        head_camera_object.header.frame_id = "head_pan_link";
+        head_camera_object.pose.position.z = 0.2;
+        head_camera_object.pose.orientation.w = 1.0;
+        head_camera_object.primitives.resize(1);
+        head_camera_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+        head_camera_object.primitives[0].dimensions.resize(3);
+        head_camera_object.primitives[0].dimensions[0] = 0.25;
+        head_camera_object.primitives[0].dimensions[1] = 0.3;
+        head_camera_object.primitives[0].dimensions[2] = 0.15;
+        head_camera_object.operation = moveit_msgs::CollisionObject::ADD;
+        collision_objects.push_back(head_camera_object);
+    }
+    else
+    {        
+        moveit_msgs::CollisionObject keepout_object;
+        keepout_object.id = "keepout";
+        keepout_object.operation = moveit_msgs::CollisionObject::REMOVE;
+        collision_objects.push_back(keepout_object);
+
+        moveit_msgs::CollisionObject ground_object;
+        ground_object.id = "ground";
+        ground_object.operation = moveit_msgs::CollisionObject::REMOVE;
+        collision_objects.push_back(ground_object);
+
+        moveit_msgs::CollisionObject head_camera_object;
+        head_camera_object.id = "head_camera";
+        head_camera_object.operation = moveit_msgs::CollisionObject::REMOVE;
+        collision_objects.push_back(head_camera_object);
+    }
+    return psi.applyCollisionObjects(collision_objects);
+}
+
+moveit_msgs::CollisionObject
+TaskBase::getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collision_object)
+{
+    // Load meshes of objects into the scene
+    collision_object.id = name;
+
+    std::string resource = "package://manipulation/meshes/" + name + ".stl";
+
+    // load mesh
+    const Eigen::Vector3d scaling(1, 1, 1);
+    shapes::Shape *shape = shapes::createMeshFromResource(resource, scaling);
+
+    if (!shape)
+    {
+        ROS_WARN_STREAM("[WorldMonitor] Unable to load mesh for object: " << name);
+        return collision_object;
+    }
+
+    shapes::ShapeMsg shape_msg;
+    shapes::constructMsgFromShape(shape, shape_msg);
+
+    collision_object.meshes.resize(1);
+    collision_object.meshes[0] = boost::get<shape_msgs::Mesh>(shape_msg);
+
+    collision_object.mesh_poses.resize(1);
+    collision_object.mesh_poses[0].orientation.w = 1.0;
+    return collision_object;
+}
+
 double
 TaskBase::getHeightOffsetForSurface(const std::string &object_name, const std::string &place_surface_name, const double place_surface_offset)
 {
-    #include <geometric_shapes/shapes.h>
-    #include <geometric_shapes/mesh_operations.h>
-    #include <geometric_shapes/shape_operations.h>
-
     moveit_msgs::CollisionObject object_co = getAttachedObjects()[object_name].object;
 
     double object_place_offset = 0.0;
@@ -63,7 +146,7 @@ bool TaskBase::execute()
 
     actionlib::SimpleActionClient<moveit_task_constructor_msgs::ExecuteTaskSolutionAction>
 
-        execute("execute_task_solution", true);
+    execute("execute_task_solution", true);
     execute.waitForServer();
 
     moveit_task_constructor_msgs::ExecuteTaskSolutionGoal execute_goal;
@@ -78,7 +161,6 @@ bool TaskBase::execute()
         ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Task execution failed and returned: " << execute_result.val);
         return false;
     }
-
     return true;
 }
 
@@ -158,6 +240,8 @@ void TaskBase::TASK_INFO(const std::string &info)
 
 bool TaskBase::initTask()
 {
+    applySelfCollisionAvoidance(true);
+    sleep(1);
     try
     {
         // Attempt to initialize the task.
@@ -168,7 +252,8 @@ bool TaskBase::initTask()
         ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Initialization failed: " << e);
         return false;
     }
-
+    applySelfCollisionAvoidance(false);
+    sleep(1);
     return true;
 }
 

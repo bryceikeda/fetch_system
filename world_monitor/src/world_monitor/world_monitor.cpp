@@ -75,7 +75,7 @@ bool WorldMonitor::applyPlanningScene(moveit_msgs::PlanningScene &planning_scene
     // Apply Planning scene for initial add and continued update
     moveit_msgs::ApplyPlanningScene srv;
     srv.request.scene = planning_scene;
-    if (planning_scene_service.call(srv))
+    if (planning_scene_client.call(srv))
     {
         ROS_INFO("[world_monitor_node] Planning Scene applied.");
         return true;
