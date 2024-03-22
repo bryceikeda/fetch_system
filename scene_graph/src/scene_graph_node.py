@@ -244,7 +244,6 @@ class SceneGraphNode:
 if __name__ == "__main__":
     scene_graph = SceneGraphNode()
     rate = rospy.Rate(40)
-    rospy.sleep(3)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
     scene_graph.draw()

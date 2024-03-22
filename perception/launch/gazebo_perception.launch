@@ -1,6 +1,6 @@
 <launch>
     <!-- Set your parameters as arguments in the launch file -->
-    <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects.yaml"/>
+    <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_no_tracking.yaml"/>
     <arg name="model_states_topic" default="/gazebo/model_states"/>
 
     <node name="gazebo_perception_node" pkg="perception" type="gazebo_perception.py" output="screen">

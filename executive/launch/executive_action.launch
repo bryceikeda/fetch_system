@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="action_planner" pkg="action_planner" type="action_planner_node.py" output="screen"/>
+
+    <!-- EXECUTIVE -->
+    <node name="executive_node" pkg="executive" type="executive_node.py" output="screen"/>
+</launch>
