@@ -35,7 +35,8 @@ public:
     bool updatePlanningSceneRequest(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     bool getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
     bool applyPlanningScene(moveit_msgs::PlanningScene &planning_scene);
-    void loadObjectParameters(const std::string filepath);
+    void loadObjectParameters(const std::string objects_filepath);
+    void loadSurfaceParameters(const std::string surfaces_filepath);
 
     moveit_msgs::PlanningScene updatePlanningScene();
     moveit_msgs::CollisionObject getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collisionObject);
@@ -58,6 +59,7 @@ private:
     vision_msgs::Detection3DArray object_detections;
     moveit_msgs::PlanningSceneWorld active_scene_objects;
     moveit_msgs::PlanningSceneWorld scene_object_properties;
+    moveit_msgs::PlanningSceneWorld surface_object_properties;
     std::vector<std::string> objects_info;
     std::vector<geometry_msgs::TransformStamped> transformStampedArray;
 };

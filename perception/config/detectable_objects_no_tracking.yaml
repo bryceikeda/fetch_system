@@ -1,11 +1,11 @@
-- name: "table on the left"
-  id: 0
-  frame_id: "odom"
-  size: [0.05, 0.1, 0.02]
-- name: "table on the right"
-  id: 1
-  frame_id: "odom"
-  size: [0.0, 0.0, 0.0]
+# - name: "table on the left"
+#   id: 0
+#   frame_id: "odom"
+#   size: [0.05, 0.1, 0.02]
+# - name: "table on the right"
+#   id: 1
+#   frame_id: "odom"
+#   size: [0.0, 0.0, 0.0]
 - name: "pringles" # cylinder
   id: 2
   frame_id: "odom"

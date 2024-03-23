@@ -10,6 +10,7 @@ class ActionPlanParser:
     def __init__(self):
         self.picked_object = ""
         self.action_plan_goal = ExecuteActionPlanGoal()
+        self.plan_id = 0
 
     def get_action_plan_goal(self, language_model_output):
         for task in language_model_output:
@@ -19,21 +20,22 @@ class ActionPlanParser:
     def parse_text(self, task):
         if task.startswith("pick "):
             self.picked_object = task[5:]
-            self.add_action_request(ManipulationPlanRequest.PICK, task[5:], task)
+            self.add_action_request(ManipulationPlanRequest.PICK, task[5:], "Action " + str(self.plan_id) + ": " + task)
         elif task.startswith("place on "):
             self.add_action_request(
-                ManipulationPlanRequest.PLACE, task[9:], self.picked_object + " " + task
+                ManipulationPlanRequest.PLACE, task[9:], "Action " + str(self.plan_id) + ": " + self.picked_object + " " + task
             )
         elif task.startswith("pour in "):
-            self.add_action_request(ManipulationPlanRequest.POUR, task[8:], task)
+            self.add_action_request(ManipulationPlanRequest.POUR, task[8:], "Action " + str(self.plan_id) + ": " + task)
         elif task == "wave at me":
-            self.add_action_request(ManipulationPlanRequest.WAVE, "", task)
+            self.add_action_request(ManipulationPlanRequest.WAVE, "", "Action " + str(self.plan_id) + ": " + task)
         elif task == "dance":
-            self.add_action_request(ManipulationPlanRequest.DANCE, "", task)
+            self.add_action_request(ManipulationPlanRequest.DANCE, "", "Action " + str(self.plan_id) + ": " + task)
         elif task == "done":
             None
         else:
             rospy.loginfo("Invalid task: %s", task)
+        self.plan_id += 1
 
     def build_action_request(
         self, task_type, target_object_name="", description="", place_pose=Pose()

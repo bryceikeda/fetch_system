@@ -99,6 +99,7 @@ bool WorldMonitor::initializePlanningScene()
     {
         for (auto collision_object : scene_object_properties.collision_objects)
         {
+            ROS_INFO("Object ID: %s == %s?", collision_object.id.c_str(), objects_info[detection.results[0].id].c_str());
             if (collision_object.id == objects_info[detection.results[0].id])
             {
                 // Get mesh file and add to object
@@ -118,7 +119,6 @@ bool WorldMonitor::initializePlanningScene()
                 }
 
                 collision_object.pose = detection.bbox.center;
-                collision_object.operation = moveit_msgs::CollisionObject::ADD;
                 planning_scene.world.collision_objects.push_back(collision_object);
                 active_scene_objects.collision_objects.push_back(collision_object);
                 addObjectTransform(collision_object);
@@ -126,6 +126,20 @@ bool WorldMonitor::initializePlanningScene()
                 break;
             }
         }
+    }
+
+    for(auto surface : surface_object_properties.collision_objects)
+    {
+        // Surface objects are colored blue
+        moveit_msgs::ObjectColor color;
+        color.id = surface.id;
+        color.color.b = 1.0;
+        color.color.a = 1.0;
+        planning_scene.object_colors.push_back(color);
+        planning_scene.world.collision_objects.push_back(surface);
+        active_scene_objects.collision_objects.push_back(surface);
+        addObjectTransform(surface);
+        ROS_INFO_STREAM("[world_monitor_node] Adding surface to scene: " << surface.id);
     }
 
     planning_scene.is_diff = true;
@@ -209,10 +223,10 @@ WorldMonitor::getObjectMesh(const std::string &name, moveit_msgs::CollisionObjec
     return collision_object;
 }
 
-void WorldMonitor::loadObjectParameters(std::string filepath)
+void WorldMonitor::loadObjectParameters(const std::string objects_filepath)
 {
     // Read configuration from YAML file
-    YAML::Node config = YAML::LoadFile(filepath);
+    YAML::Node config = YAML::LoadFile(objects_filepath);
 
     // Iterate over each entry in the YAML file
     for (const auto &entry : config)
@@ -299,5 +313,113 @@ void WorldMonitor::loadObjectParameters(std::string filepath)
 
         // Add the CollisionObject to the list
         scene_object_properties.collision_objects.push_back(collisionObject);
+    }
+}
+
+
+void WorldMonitor::loadSurfaceParameters(const std::string surfaces_filepath)
+{
+    // Read configuration from YAML file
+    YAML::Node config = YAML::LoadFile(surfaces_filepath);
+
+    // Iterate over each entry in the YAML file
+    for (const auto &entry : config)
+    {
+        // Create a CollisionObject for each entry
+        moveit_msgs::CollisionObject collisionObject;
+
+        // Safety checks for required fields
+        if (!entry["object_id"] || !entry["header_frame_id"] || !entry["primitive_types"] ||
+            !entry["primitive_dimensions"] || !entry["primitive_poses"] || !entry["subframe_names"] || !entry["subframe_poses"])
+        {
+            // Handle missing fields or incorrect YAML structure
+            ROS_ERROR_STREAM("Invalid YAML structure in the file.");
+            continue;
+        }
+
+        collisionObject.id = entry["object_id"].as<std::string>();
+        collisionObject.header.frame_id = entry["header_frame_id"].as<std::string>();
+        collisionObject.type.key = entry["key"].as<std::string>();
+
+        const auto &pose = entry["pose"].as<std::vector<double>>();
+        // Get information arrays from the entry
+        const auto &primitiveTypes = entry["primitive_types"];
+        const auto &primitiveDimensions = entry["primitive_dimensions"];
+        const auto &primitivePoses = entry["primitive_poses"];
+
+        const auto &subframeNames = entry["subframe_names"].as<std::vector<std::string>>();
+        const auto &subframePoses = entry["subframe_poses"];
+
+        const auto &meshPoses = entry["mesh_poses"];
+
+        for(std::size_t i = 0; i < pose.size(); ++i)
+        {
+            geometry_msgs::Pose temp;
+            temp.position.x = pose[0];
+            temp.position.y = pose[1];
+            temp.position.z = pose[2];
+            temp.orientation.x = pose[3];
+            temp.orientation.y = pose[4];
+            temp.orientation.z = pose[5];
+            temp.orientation.w = pose[6];
+            collisionObject.pose = temp;
+        }
+
+        // Primitives
+        for (std::size_t i = 0; i < primitiveTypes.size(); ++i)
+        {
+            // Assuming there is only one type and pose per primitive
+            shape_msgs::SolidPrimitive primitive;
+            primitive.type = primitiveTypes[i][0].as<int>();
+            primitive.dimensions = primitiveDimensions[i].as<std::vector<double>>();
+
+            geometry_msgs::Pose primitivePose;
+            primitivePose.position.x = primitivePoses[i][0].as<double>();
+            primitivePose.position.y = primitivePoses[i][1].as<double>();
+            primitivePose.position.z = primitivePoses[i][2].as<double>();
+            primitivePose.orientation.x = primitivePoses[i][3].as<double>();
+            primitivePose.orientation.y = primitivePoses[i][4].as<double>();
+            primitivePose.orientation.z = primitivePoses[i][5].as<double>();
+            primitivePose.orientation.w = primitivePoses[i][6].as<double>();
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.primitives.push_back(primitive);
+            collisionObject.primitive_poses.push_back(primitivePose);
+        }
+
+        // Subframes
+        for (std::size_t i = 0; i < subframeNames.size(); ++i)
+        {
+            geometry_msgs::Pose subframePose;
+            subframePose.position.x = subframePoses[i][0].as<double>();
+            subframePose.position.y = subframePoses[i][1].as<double>();
+            subframePose.position.z = subframePoses[i][2].as<double>();
+            subframePose.orientation.x = subframePoses[i][3].as<double>();
+            subframePose.orientation.y = subframePoses[i][4].as<double>();
+            subframePose.orientation.z = subframePoses[i][5].as<double>();
+            subframePose.orientation.w = subframePoses[i][6].as<double>();
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.subframe_names.push_back(subframeNames[i]);
+            collisionObject.subframe_poses.push_back(subframePose);
+        }
+
+        // Mesh Poses
+        for (std::size_t i = 0; i < meshPoses.size(); ++i)
+        {
+            geometry_msgs::Pose meshPose;
+            meshPose.position.x = meshPoses[i][0].as<double>();
+            meshPose.position.y = meshPoses[i][1].as<double>();
+            meshPose.position.z = meshPoses[i][2].as<double>();
+            meshPose.orientation.x = meshPoses[i][3].as<double>();
+            meshPose.orientation.y = meshPoses[i][4].as<double>();
+            meshPose.orientation.z = meshPoses[i][5].as<double>();
+            meshPose.orientation.w = meshPoses[i][6].as<double>();
+            // Set the pose and primitive for the CollisionObject
+            collisionObject.subframe_poses.push_back(meshPose);
+        }
+
+        collisionObject.operation = moveit_msgs::CollisionObject::ADD;
+
+        // Add the CollisionObject to the list
+        surface_object_properties.collision_objects.push_back(collisionObject);
     }
 }

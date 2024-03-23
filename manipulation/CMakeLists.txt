@@ -155,6 +155,7 @@ add_library(tasks
    src/tasks/dance_task.cpp
    src/tasks/open_hand_task.cpp
    src/tasks/close_hand_task.cpp
+   src/tasks/ready_pose_task.cpp
    src/tasks/task_base.cpp
    src/tasks/task_factory.cpp
    src/tasks/task_parameters_loader.cpp

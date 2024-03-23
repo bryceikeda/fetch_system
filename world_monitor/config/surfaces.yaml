@@ -1,0 +1,29 @@
+# - object_id: "Table"
+#   key: "surface"
+#   header_frame_id: "odom"
+#   primitive_types: [[1]]
+#   primitive_dimensions: [[.75, 1.52, .04]]
+#   primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
+#   subframe_names: ["center", "left", "far left"]
+#   subframe_poses: [[-.25, -.3, 0.665, 0, 0, 0, 1], [-.25, -.1, 0.665, 0, 0, 0, 1], [-.25, -0.2, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+#   mesh_poses: []
+- object_id: "table on the left"
+  key: "surface"
+  header_frame_id: "odom"
+  pose: [.95, -.38, 0.0, 0.0, 0.0, 0.0, 1.0]
+  primitive_types: [[1]]
+  primitive_dimensions: [[.737, .75, .04]]
+  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1], ]
+  subframe_names: ["slight left", "left", "far left"]
+  subframe_poses: [[-.25, -.15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, .15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+  mesh_poses: []
+- object_id: "table on the right"
+  key: "surface"
+  header_frame_id: "odom"
+  pose: [.95, .38, 0.0, 0.0, 0.0, 0.0, 1.0]
+  primitive_types: [[1]]
+  primitive_dimensions: [[.737, .75, .04]]
+  primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
+  subframe_names: ["slight right", "right", "far right"]
+  subframe_poses: [[-.25, .15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, -.15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
+  mesh_poses: []

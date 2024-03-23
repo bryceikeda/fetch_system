@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf2_eigen
   tf_conversions
+  nav_msgs
   )
 
 ## System dependencies are found with CMake's conventions
@@ -29,7 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -170,8 +171,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
    scripts/model_states_publisher.py
-   scripts/vicon_model_states_publisher.py
-   scripts/VICON_to_ROS.py
+   scripts/vicon_data_publisher.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

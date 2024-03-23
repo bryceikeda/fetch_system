@@ -46,6 +46,11 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
   // Provide place surface
   parameters.target_object_name_ = req.manipulation_plan_request.target_object_name;
 
+  if(task_plans.find(task_name) != task_plans.end())
+  {
+    task_plans[task_name].reset();
+  }
+
   task_plans[task_name] = TaskFactory::createTask(parameters.task_type_, task_name.c_str(), nh_);
 
   // Return failure if initialization fails
@@ -56,7 +61,7 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
   }
   // Get if planning suceeded or failed
   res.manipulation_plan_response.error_code = task_plans[task_name]->plan();
-
+  res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   // Only add the solution if planning succeeded
   if (res.manipulation_plan_response.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {

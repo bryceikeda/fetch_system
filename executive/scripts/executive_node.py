@@ -45,7 +45,7 @@ class ExecutiveNode:
         self.result = ExecuteActionPlanResult()
 
     def execute_trajectory_action(self, goal):
-        print("Executing trajectory action")
+        print("[ExecutiveNode]: Executing trajectory action")
         self.action_plan_server.set_succeeded()
 
     def handle_stop_robot_request(self, req):
@@ -87,15 +87,34 @@ class ExecutiveNode:
                 rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
                 status = MoveItErrorCodes.PLANNING_FAILED
                 break
-            
+        
             error_code = self.execute_solution()
 
             if error_code == MoveItErrorCodes.SUCCESS:
                 rospy.loginfo("[ExecutiveNode]: Execution Success, moving on to the next task")
             else:
                 status = MoveItErrorCodes.CONTROL_FAILED
-                rospy.loginfo("[ExecutiveNode]: Execution Failed, exiting")
-                break
+                if(task.task_type == ManipulationPlanRequest.PLACE):
+                    recover_from_place_task = build_action_request(ManipulationPlanRequest.READY_POSE, "", "Ready Pose")
+                    if self.compute_task_solution(recover_from_place_task) == MoveItErrorCodes.FAILURE:
+                        rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
+                        status = MoveItErrorCodes.PLANNING_FAILED
+                        break
+                    error_code = self.execute_solution()
+                    rospy.loginfo("[ExecutiveNode]: Recovered from place task")
+                    status = MoveItErrorCodes.SUCCESS
+                elif(task.task_type == ManipulationPlanRequest.PICK):
+                    if self.compute_task_solution(task) == MoveItErrorCodes.FAILURE:
+                        rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
+                        status = MoveItErrorCodes.PLANNING_FAILED
+                        break
+                    error_code = self.execute_solution()
+                    rospy.loginfo("[ExecutiveNode]: Recovered from place task")
+                    status = MoveItErrorCodes.SUCCESS
+                else:
+                    rospy.loginfo("[ExecutiveNode]: Execution Failed, exiting")
+                    break
+            rospy.sleep(2)
 
         self.result.error_code.val = status
         self.action_plan_server.set_succeeded(self.result)

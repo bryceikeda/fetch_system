@@ -195,7 +195,7 @@ class SceneGraphNode:
             response = self.get_scene_objects_client.call(GetPlanningSceneRequest())
             self.scene_objects = response.scene
         except rospy.ServiceException as e:
-            rospy.sleep(5)
+            rospy.sleep(2)
 
     def calculate_positions(self):
         self.pos_3d = nx.fruchterman_reingold_layout(self.scene_graph.graph, dim=3)

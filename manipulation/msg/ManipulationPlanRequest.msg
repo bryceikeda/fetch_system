@@ -8,6 +8,7 @@ int32 WAVE=5
 int32 DANCE=6
 int32 WIPE=7
 int32 POUR=8
+int32 READY_POSE=9
 int32 task_type
 
 # Name to label the task

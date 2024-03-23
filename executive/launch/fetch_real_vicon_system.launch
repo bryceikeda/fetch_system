@@ -1,20 +1,19 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- SIMULATOR -->
-    <node name="simulator" pkg="simulator" type="model_states_publisher.py" output="screen">
-        <param name="model_states_file_path" value="$(find simulator)/config/model_states.yaml" />
-    </node>
+    <node name="simulator" pkg="simulator" type="vicon_data_publisher.py" output="screen"/>
     
     <!-- PERCEPTION -->
     <include file="$(find perception)/launch/gazebo_perception.launch">
-        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_no_tracking.yaml"/>
+        <arg name="detectable_objects_file_path" default="$(find perception)/config/detectable_objects_vicon.yaml"/>
         <arg name="model_states_topic" default="/gazebo/model_states"/>
     </include>
 
     <!-- WORLD MONITOR -->
-    <arg name="object_definitions_file_path" default="$(find world_monitor)/config/object_definitions_no_tracking.yaml"/>
+    <arg name="object_definitions_file_path" default="$(find world_monitor)/config/object_definitions_vicon.yaml"/>
+    <arg name="surfaces_definitions_file_path" default="$(find world_monitor)/config/surfaces.yaml"/>
     <node name="world_monitor_node" pkg="world_monitor" type="world_monitor_node" output="screen">
         <param name="object_definitions_file_path" value="$(arg object_definitions_file_path)" />
+        <param name="surfaces_definitions_file_path" value="$(arg surfaces_definitions_file_path)" />
     </node>
 
     <!-- SCENE GRAPH -->

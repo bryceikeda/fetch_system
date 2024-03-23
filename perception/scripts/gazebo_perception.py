@@ -76,7 +76,7 @@ class PerceptionNode:
 
     def object_detections_publisher(self):
         detections = Detection3DArray()
-
+        
         for i, name in enumerate(self.model_states.name):
             gazebo_object = self.object_dict.get(name)
             if gazebo_object:

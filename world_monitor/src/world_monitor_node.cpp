@@ -16,14 +16,21 @@ int main(int argc, char *argv[])
     world_monitor.get_scene_objects_service = nh.advertiseService("/world_monitor/get_scene_objects", &WorldMonitor::getSceneObjectsRequest, &world_monitor);
 
     bool initialize_scene = true;
-    std::string file_path;
-    if (!pnh.getParam("object_definitions_file_path", file_path))
+    std::string objects_file_path;
+    if (!pnh.getParam("object_definitions_file_path", objects_file_path))
     {
         ROS_ERROR("Failed to retrieve object_definitions_file_path parameter.");
         return 1;
     }
 
-    world_monitor.loadObjectParameters(file_path);
+    std::string surfaces_file_path;
+    if (!pnh.getParam("surfaces_definitions_file_path", surfaces_file_path))
+    {
+        ROS_ERROR("Failed to retrieve object_definitions_file_path parameter.");
+        return 1;
+    }
+    world_monitor.loadObjectParameters(objects_file_path);
+    world_monitor.loadSurfaceParameters(surfaces_file_path);
 
     ros::Rate loop_rate(50);
     while (ros::ok())
