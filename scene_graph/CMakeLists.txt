@@ -80,7 +80,7 @@ add_service_files(
 generate_messages(
    DEPENDENCIES
 #   geometry_msgs#   moveit_msgs#   sensor_msgs#   shape_msgs
-   std_msgs 
+   std_msgs geometry_msgs shape_msgs
 )
 
 ################################################

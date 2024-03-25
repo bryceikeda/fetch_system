@@ -15,21 +15,24 @@ class ViconDataPublisher:
         # Initialize ROS publisher
         self.model_states_pub = rospy.Publisher("/gazebo/model_states", ModelStates, queue_size=1)
         self.odometry_pub = rospy.Publisher("/vicon/odometry", Odometry, queue_size=1)
-
+        self.unity_model_states_pub = rospy.Publisher("/unity/model_states", ModelStates, queue_size=1)
         # Initialize Vicon data receiver
-        self.vicon_data_receiver = ViconDataReceiver(ip='192.168.1.12', port=12345, iter_vicon=10, packet_size=4096, object_reference_frame_name="base_link")
+        self.vicon_data_receiver = ViconDataReceiver(ip='192.168.1.12', port=12345, iter_vicon=10, packet_size=4096)
 
         # Initialize model states and reference frame pose
         self.model_states = ModelStates()
+        self.unity_model_states = ModelStates()
         self.odometry = Odometry()
 
     def get_vicon_data(self):
-        self.odometry, self.model_states = self.vicon_data_receiver.get_data()
-    
+        self.odometry, self.model_states = self.vicon_data_receiver.get_data("base_link", "base_link", ["QRCode"])
+        _, self.unity_model_states = self.vicon_data_receiver.get_data("QRCode")
+
     def publish(self):
         # Publish the transformed model states
         self.model_states_pub.publish(self.model_states)
         self.odometry_pub.publish(self.odometry)
+        self.unity_model_states_pub.publish(self.unity_model_states)
 
 if __name__ == "__main__":
     # Initialize ModelStatesPublisher instance

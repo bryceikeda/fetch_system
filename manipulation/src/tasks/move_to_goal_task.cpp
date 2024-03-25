@@ -18,7 +18,7 @@ bool MoveToGoalTask::init(const TaskParameters &parameters)
 {
   TASK_INFO("Initializing mtc pipeline");
   auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
-  // sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+  sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
   sampling_planner->setPlannerId("RRTConnectkConfigDefault");
 
   // Cartesian planner

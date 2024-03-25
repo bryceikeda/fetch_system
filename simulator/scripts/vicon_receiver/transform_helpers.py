@@ -14,13 +14,13 @@ def get_transform_matrix(position, orientation):
     transform_matrix[:3, 3] = [position.x, position.y, position.z]
     return transform_matrix
 
-def transform_object_to_ref_frame(object_pose, ref_frame_pose):
+def transform_to_parent_frame(pose, ref_frame_pose):
     # Compute transformation matrix for the reference frame
     ref_frame_transform_matrix = get_transform_matrix(ref_frame_pose.position, ref_frame_pose.orientation)
     ref_frame_inverse_transform = np.linalg.inv(ref_frame_transform_matrix)
 
     # Compute transformation matrix for the object
-    object_transform_matrix = get_transform_matrix(object_pose.position, object_pose.orientation)
+    object_transform_matrix = get_transform_matrix(pose.position, pose.orientation)
 
     # Compute transformation from object frame to reference frame
     object_to_ref_frame_transform = np.dot(ref_frame_inverse_transform, object_transform_matrix)

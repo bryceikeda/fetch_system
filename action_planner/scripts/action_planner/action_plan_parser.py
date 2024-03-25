@@ -13,6 +13,7 @@ class ActionPlanParser:
         self.plan_id = 0
 
     def get_action_plan_goal(self, language_model_output):
+        self.action_plan_goal = ExecuteActionPlanGoal()
         for task in language_model_output:
             self.parse_text(task)
         return self.action_plan_goal
@@ -32,7 +33,7 @@ class ActionPlanParser:
         elif task == "dance":
             self.add_action_request(ManipulationPlanRequest.DANCE, "", "Action " + str(self.plan_id) + ": " + task)
         elif task == "done":
-            None
+            self.add_action_request(ManipulationPlanRequest.DONE, "", "Action Plan Completed")
         else:
             rospy.loginfo("Invalid task: %s", task)
         self.plan_id += 1

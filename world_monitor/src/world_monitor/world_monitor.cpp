@@ -99,7 +99,6 @@ bool WorldMonitor::initializePlanningScene()
     {
         for (auto collision_object : scene_object_properties.collision_objects)
         {
-            ROS_INFO("Object ID: %s == %s?", collision_object.id.c_str(), objects_info[detection.results[0].id].c_str());
             if (collision_object.id == objects_info[detection.results[0].id])
             {
                 // Get mesh file and add to object

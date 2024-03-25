@@ -4,6 +4,7 @@ import networkx as nx
 from shape_msgs.msg import SolidPrimitive
 import numpy as np
 import transforms3d as tf3d
+from scipy.spatial.transform import Rotation as R
 
 
 class SceneGraph:
@@ -15,10 +16,56 @@ class SceneGraph:
         edges_to_remove = list(self.graph.edges())
         self.graph.remove_edges_from(edges_to_remove)
 
+    def update_object_positions(self, object_detections, detection_classes):
+        if len(detection_classes) > 0:
+            for detection in object_detections.detections:
+                object_name = detection_classes[detection.results[0].id]
+                position = (
+                    detection.bbox.center.position.x,
+                    detection.bbox.center.position.y,
+                    detection.bbox.center.position.z
+                )
+                orientation = (
+                    detection.bbox.center.orientation.x,
+                    detection.bbox.center.orientation.y,
+                    detection.bbox.center.orientation.z,
+                    detection.bbox.center.orientation.w
+                )
+                if self.graph.has_node(object_name):
+                    self.graph.nodes[object_name]["position"] = position
+                    self.graph.nodes[object_name]["orientation"] = orientation
+
     def add_unity_scene_relationships(self, unity_scene_relationships):
         for relationship in unity_scene_relationships.relationships:
+            position = (
+                relationship.pose.position.x,
+                relationship.pose.position.y,
+                relationship.pose.position.z
+            )
+            orientation = (
+                relationship.pose.orientation.x,
+                relationship.pose.orientation.y,
+                relationship.pose.orientation.z,
+                relationship.pose.orientation.w
+            )
+            dimensions = (
+                relationship.primitive.dimensions[0],
+                relationship.primitive.dimensions[1],
+                relationship.primitive.dimensions[2]
+            )
+
             if not self.graph.has_node(relationship.zone):
-                self.add_node(relationship.zone)
+                attributes = {
+                    "type": "surface", 
+                    "position": position,
+                    "orientation": orientation,
+                    "dimensions": dimensions
+                }
+                self.add_node(relationship.zone, attributes)
+            else:
+                self.graph.nodes[relationship.zone]["position"] = position
+                self.graph.nodes[relationship.zone]["orientation"] = orientation
+                self.graph.nodes[relationship.zone]["dimensions"] = dimensions
             for node in relationship.node_objects:
                 self.graph.add_edge(
                     relationship.zone, node, label=relationship.relationship
@@ -28,6 +75,11 @@ class SceneGraph:
         related_nodes = []
         attributes = []
 
+        # return the place sub_frames for the surface the zone covers
+        if(node_name[:4] == "Zone"):
+            related_nodes, attributes = self.get_subframes_in_zone(node_name)
+            return [related_nodes, attributes]
+
         if relationship_type:
             if relationship_type == "is_on":
                 node_object_is_on = self.get_surface_object_is_on(node_name)
@@ -36,11 +88,91 @@ class SceneGraph:
                 related_nodes = self.get_objects_with_relationship(relationship_type)
 
         if attribute_name:
-            attributes = self.graph.nodes[node_name][attribute_name]
-            if not isinstance(attributes, list):
-                attributes = [attributes]
+            if node_name: 
+                attributes = self.graph.nodes[node_name][attribute_name]
+                if not isinstance(attributes, list):
+                    attributes = [attributes]
+            else:
+                for node, attribute in self.graph.nodes(data=True):
+                    # Check if the other node is an object and not the same as the support surface
+                    if attribute.get("type", "") == attribute_name:
+                        related_nodes.append(node)
 
         return [related_nodes, attributes]
+
+    def get_subframes_in_zone(self, zone_name):
+        place_frame_names = []
+
+        zone_position = self.graph.nodes[zone_name]["position"]
+        zone_orientation = self.graph.nodes[zone_name]["orientation"]
+        zone_dimensions = self.graph.nodes[zone_name]["dimensions"]
+
+        surface_name = self.get_surface_under_zone(zone_position)
+        surface_position = self.graph.nodes[surface_name]["position"]
+        surface_orientation = self.graph.nodes[surface_name]["orientation"]
+        
+        subframe_names = self.graph.nodes[surface_name]["subframe_names"]
+        subframe_poses = self.graph.nodes[surface_name]["subframe_poses"]
+
+
+        # Calculate zone boundaries
+        min_x = - zone_dimensions[0] / 2
+        max_x = zone_dimensions[0] / 2
+        min_y = - zone_dimensions[1] / 2
+        max_y = zone_dimensions[1] / 2
+
+        # Check if subframes are within zone boundaries
+        for subframe_name, subframe_position in zip(subframe_names, subframe_poses):
+            subframe_position = self.calculate_child_coordinates(surface_position, surface_orientation, subframe_position)
+            x, y, _ = self.transform_object(subframe_position, zone_position, zone_orientation)
+            if min_x < x < max_x and min_y < y < max_y:
+                place_frame_names.append(subframe_name)
+        
+        return [surface_name], place_frame_names
+    
+    def calculate_child_coordinates(self, parent_pos, parent_orientation, child_offset):
+        # Create a rotation matrix from the parent's orientation quaternion
+        rotation_matrix = R.from_quat(parent_orientation).as_matrix()
+
+        # Rotate the child offset vector using the rotation matrix
+        rotated_offset = rotation_matrix.dot(child_offset[:3])
+
+        # Add the rotated offset to the parent's position
+        child_pos = parent_pos + rotated_offset
+        return child_pos
+
+    def get_surface_under_zone(self, zone_position):
+        # Currently zone can be anywhere above or below
+        for surface_node in self.graph.nodes():
+            attributes = self.graph.nodes[surface_node]
+            if attributes.get("type") == "surface":
+                surface_position = self.graph.nodes[surface_node]["position"]
+                surface_orientation = self.graph.nodes[surface_node]["orientation"]
+                surface_dimensions = self.graph.nodes[surface_node]["dimensions"]
+
+                object_position = self.transform_object(
+                    zone_position, surface_position, surface_orientation
+                )
+
+                # Zone can be within buffer zone of surface
+                is_above = (
+                    -surface_dimensions[2] / 2 - .025
+                    < object_position[2]  # move object and table to 0
+                    < surface_dimensions[2] / 2 + .25 
+                )
+
+
+
+                is_within_x = (
+                    -surface_dimensions[0] / 2 < object_position[0] < surface_dimensions[0] / 2
+                )
+                is_within_y = (
+                    -surface_dimensions[1] / 2 < object_position[1] < surface_dimensions[1] / 2
+                )
+
+                if is_within_x and is_within_y and is_above:
+                    return surface_node
+        return None
 
     def delete_trigger(self, node_name):
         if self.graph.has_node(node_name):

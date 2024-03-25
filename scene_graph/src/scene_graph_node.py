@@ -8,8 +8,9 @@ from scene_graph.srv import QuerySceneGraph, QuerySceneGraphResponse
 from scene_graph.msg import UnityRelationships
 from std_msgs.msg import String
 from scene_graph.scene_graph import SceneGraph
-
-
+from gazebo_msgs.msg import ModelStates
+from vision_msgs.msg import Detection3DArray, VisionInfo
+from perception.srv import GetDetectionClasses, GetDetectionClassesRequest, GetDetectionClassesResponse
 class SceneGraphNode:
     def __init__(self):
         # Initialize the ROS node
@@ -27,7 +28,7 @@ class SceneGraphNode:
         self.scene_objects = None
         self.unity_scene_relationships = UnityRelationships()
         self.previous_node_count = 0
-        
+
         # Subscribers
         self.unity_relationships_subscriber = rospy.Subscriber(
             "/unity/scene_relationships",
@@ -38,6 +39,15 @@ class SceneGraphNode:
             "/unity/delete_trigger_node",
             String,
             self.handle_delete_trigger
+        )
+
+        self.object_detections_subscriber = rospy.Subscriber(
+            "/perception/object_detections", Detection3DArray, self.handle_object_detections
+        )
+
+        self.get_detection_classes_client = rospy.ServiceProxy(
+            "/perception/get_detection_classes",
+            GetDetectionClasses
         )
 
         # Service clients
@@ -57,19 +67,30 @@ class SceneGraphNode:
         # Timer for graph updates
         self.update_timer = rospy.Timer(
             rospy.Duration(0.5),
-            self.update_graph_callback
+            self.update_graph
         )
 
+        self.object_detections = Detection3DArray()
+        self.detection_classes = []
         # Plot attributes
         self.fig, self.ax = plt.subplots()
+        self.fig.set_size_inches(4, 4)  
 
     def handle_scene_relationships(self, msg):
         self.unity_scene_relationships = msg
 
-    def update_graph_callback(self, event):
+    def handle_object_detections(self, msg):
+        self.object_detections = msg
+    
+    def get_detection_classes(self, msg):
+        if self.object_detections == None:
+            self.vision_info = msg
+
+    def update_graph(self, event):
         self.scene_graph.clear_graph_edges()
         self.scene_graph.calculate_supports_relationship()
         self.scene_graph.add_unity_scene_relationships(self.unity_scene_relationships)
+        self.scene_graph.update_object_positions(self.object_detections, self.detection_classes)
         self.draw()
 
     def handle_delete_trigger(self, msg):
@@ -82,20 +103,35 @@ class SceneGraphNode:
         )
         return res
 
+    def get_detection_classes(self):
+        try:
+            response = self.get_detection_classes_client.call(GetDetectionClassesRequest())
+            self.detection_classes = response.detection_classes
+        except rospy.ServiceException as e:
+            rospy.sleep(1)
+
     def initialize_scene_graph(self):
         while self.scene_objects == None:
             self.get_scene_objects()
-            rospy.sleep(3)
-        
+            rospy.sleep(1)
+        while self.detection_classes == []:
+            self.get_detection_classes()
+            rospy.sleep(1)
+
         self.scene_graph.add_node("user")
 
         for collision_object in self.scene_objects.world.collision_objects:
             if collision_object.type.key == "surface":
                 dimensions = collision_object.primitives[0].dimensions
                 subframe_names = [name for name in collision_object.subframe_names]
+                subframe_poses = []
+                for subframe_pose in collision_object.subframe_poses:
+                    pose = (subframe_pose.position.x, subframe_pose.position.y, subframe_pose.position.z, subframe_pose.orientation.x, subframe_pose.orientation.y, subframe_pose.orientation.z, subframe_pose.orientation.w)
+                    subframe_poses.append(pose)
                 attributes = {
                     "type": "surface",
                     "subframe_names": subframe_names,
+                    "subframe_poses": subframe_poses
                 }
                 # Use the first pose in 'primitive_poses' as the position
                 position = (
@@ -246,5 +282,6 @@ if __name__ == "__main__":
     rate = rospy.Rate(40)
     # Add objects to the scene graph with positions
     scene_graph.initialize_scene_graph()
+    # scene_graph.scene_graph.query_scene_graph("subframe_names", "", "Zone 1")
     scene_graph.draw()
     plt.show(block=True)

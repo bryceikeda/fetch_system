@@ -1,4 +1,33 @@
-# - name: "table on the left"
+- name: "Bottle"
+  id: 0
+  frame_id: "base_link"
+  size: [0.0, 0.0, 0.0]
+- name: "Cheezeit"
+  id: 1
+  frame_id: "base_link"
+  size: [0.03, 0.2, 0.0]
+- name: "Cup"
+  id: 2
+  frame_id: "base_link"
+  size: [0.0, 0.0, 0.0]
+- name: "Pringles" # cylinder
+  id: 3
+  frame_id: "base_link"
+  size: [0.03, 0.2, 0.0]
+# - name: "Mustard"
+#   id: 3
+#   frame_id: "base_link"
+#   size: [0.03, 0.2, 0.0]
+
+
+
+  # - name: "Spam"
+  # id: 1
+  # frame_id: "world"
+  # size: [0.0, 0.0, 0.0]
+
+
+  # - name: "table on the left"
 #   id: 0
 #   frame_id: "odom"
 #   size: [0.05, 0.1, 0.02]
@@ -6,18 +35,18 @@
 #   id: 1
 #   frame_id: "odom"
 #   size: [0.0, 0.0, 0.0]
-- name: "pringles" # cylinder
-  id: 2
-  frame_id: "odom"
-  size: [0.03, 0.2, 0.0]
-- name: "mustard"
-  id: 3
-  frame_id: "odom"
-  size: [0.03, 0.2, 0.0]
-- name: "cheezeit"
-  id: 4
-  frame_id: "odom"
-  size: [0.05, 0.1, 0.02]
+# - name: "pringles" # cylinder
+#   id: 2
+#   frame_id: "odom"
+#   size: [0.03, 0.2, 0.0]
+# - name: "mustard"
+#   id: 3
+#   frame_id: "odom"
+#   size: [0.03, 0.2, 0.0]
+# - name: "cheezeit"
+#   id: 4
+#   frame_id: "odom"
+#   size: [0.05, 0.1, 0.02]
 # - name: "Bottle"
 #   id: 5
 #   frame_id: "world"

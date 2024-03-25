@@ -23,6 +23,18 @@ void Manipulation::setParameters(TaskParameters &params)
 // Service handler that receives message from executive to plan a task
 bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPlan::Request &req, manipulation::GetManipulationPlan::Response &res)
 {
+  if(req.manipulation_plan_request.task_type == ManipulationPlanRequest::DONE)
+  {
+    // Iterate through the map and reset each unique_ptr
+    for (auto& pair : task_plans) {
+        pair.second.reset(); // Reset the unique_ptr
+    }
+    // Clear the map
+    task_plans.clear();
+    res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
+
   std_srvs::Trigger srv;
 
   // ROS_INFO("[manipulation_node] Request: Update Planning Scene");
@@ -61,11 +73,12 @@ bool Manipulation::handleManipulationPlanRequest(manipulation::GetManipulationPl
   }
   // Get if planning suceeded or failed
   res.manipulation_plan_response.error_code = task_plans[task_name]->plan();
-  res.manipulation_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+
   // Only add the solution if planning succeeded
   if (res.manipulation_plan_response.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     task_plans[task_name]->getSolutionMsg(res.manipulation_plan_response.solution);
+    task_solution_publisher.publish(res.manipulation_plan_response.solution);
   }
 
   return true;

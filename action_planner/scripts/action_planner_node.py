@@ -10,10 +10,9 @@ from action_planner.msg import (
     ExecuteActionPlanGoal,
 )
 from moveit_msgs.msg import MoveItErrorCodes
-
 from language_model.language_model import LanguageModel
 from action_planner.action_plan_parser import ActionPlanParser
-
+from scene_graph.srv import QuerySceneGraph, QuerySceneGraphRequest, QuerySceneGraphResponse
 
 class ActionPlannerNode:
     def __init__(self):
@@ -21,36 +20,63 @@ class ActionPlannerNode:
         self.action_plan_request = rospy.Subscriber(
             "user_input/speech", String, self.handle_speech_input
         )
+
         self.action_plan_client = actionlib.SimpleActionClient(
             "execute_action_plan", ExecuteActionPlanAction
         )
         self.action_plan_client.wait_for_server()
+
+        self.scene_graph_query_client = rospy.ServiceProxy(
+            "/scene_graph/query", QuerySceneGraph
+        )
+        self.scene_graph_query_client.wait_for_service()
+
         rospy.loginfo("[ActionPlannerNode]: Action Plan Client Started")
 
         self.language_model = LanguageModel()
         self.action_plan_parser = ActionPlanParser()
 
+        
         self.language_model_output = []
-        #self.language_model_output = ["pick pringles", "done"]
-        # self.speech_command = (
-        #     "pick up the pringles and place it on the table on the left."
-        # )
         self.speech_command = ""
+
+        self.language_model_output = ["pick Pringles", "place on table on the right", "pick Cheezeit", "place on table on the right", "pick Cup", "place on table on the right", "done"]
+        #self.language_model_output = ["pick Pringles", "place on table on the left", "pick Cheezeit", "place on table on the left", "pick Cup", "place on table on the left", "done"]
+        #self.language_model_output = ["wave at me"]
+        #self.speech_command = "move the pringles to the table on the left"
         self.goal = ExecuteActionPlanGoal()
         self.feedback = ExecuteActionPlanFeedback()
         self.result = ExecuteActionPlanResult()
-
+        self.object_names = []
+        self.surface_names = []
         self.is_executing = False
+
+
+    def handle_model_states(self, msg):
+        self.model_states = msg
 
     def handle_speech_input(self, msg):
         self.speech_command = msg.data
 
+    def query_scene_graph(self, attribute_name):
+        # Construct the query with the provided attribute name
+        query = QuerySceneGraphRequest("", "", attribute_name)
+
+        # Call the scene graph query service with the constructed query
+        res = self.scene_graph_query_client.call(query)
+        print(res.related_nodes)
+        # Return the related nodes from the response
+        return res.related_nodes
+    
     def query_language_model(self):
+        self.surface_names = self.query_scene_graph("surface")
+        self.object_names = self.query_scene_graph("object")
+        
         query = {
             "mode": "generate action plan",
             "task": self.speech_command,
-            "object_names": ["pringles", "mustard", "cheezeit"],
-            "surface_names": ["table on the right", "table on the left"],
+            "object_names": self.object_names,
+            "surface_names": self.surface_names,
             "action_list": [
                 "pick <object>",
                 "place on <surface>",
@@ -67,8 +93,9 @@ class ActionPlannerNode:
         if not self.is_executing:
             if self.speech_command != "":
                 self.query_language_model()
-                self.speech_command = ""
+                self.speech_command = "" 
             elif self.language_model_output != []:
+                self.goal = ExecuteActionPlanGoal()
                 self.goal = self.action_plan_parser.get_action_plan_goal(
                     self.language_model_output
                 )
@@ -86,7 +113,7 @@ class ActionPlannerNode:
     def feedback_callback(self, feedback):
         self.feedback = feedback
         rospy.loginfo(
-            "[ActionPlannerNode]: Feedback -> Action executing is %s",
+            "[ActionPlannerNode]: Feedback -> Executing is %s",
             feedback.current_action.task_name,
         )
 
@@ -103,6 +130,7 @@ class ActionPlannerNode:
                     "[ActionPlannerNode]: Action Plan Execution Control Failed"
                 )
             self.is_executing = False
+            self.speech_command = "wave at me"
         elif self.action_plan_client.get_state() == actionlib.GoalStatus.ABORTED:
             rospy.loginfo("[ActionPlannerNode]: Action Plan Execution Aborted")
             self.is_executing = False

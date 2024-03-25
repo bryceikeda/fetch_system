@@ -16,7 +16,7 @@ bool WipeTask::init(const TaskParameters &parameters)
 {
   TASK_INFO("Initializing mtc pipeline");
   auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
-  // sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+  sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
   sampling_planner->setPlannerId("RRTConnectkConfigDefault");
 
   // Cartesian planner
@@ -39,7 +39,7 @@ bool WipeTask::init(const TaskParameters &parameters)
   attached_object_name_ = getAttachedObjects().begin()->second.object.id;
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
-    _current_state->setTimeout(10);
+    _current_state->setTimeout(20);
 
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
@@ -72,7 +72,7 @@ bool WipeTask::init(const TaskParameters &parameters)
     }
     {
       auto stage = std::make_unique<stages::MoveTo>("move to wipe start", sampling_planner);
-      stage->setTimeout(5.0);
+      stage->setTimeout(20.0);
       stage->setIKFrame(parameters.grasp_frame_transforms_.find("vertical")->second, parameters.hand_group_name_);
       stage->properties().configureInitFrom(Stage::PARENT);
 

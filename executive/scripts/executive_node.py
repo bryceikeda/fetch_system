@@ -82,12 +82,17 @@ class ExecutiveNode:
 
             self.feedback.current_action = task
             self.action_plan_server.publish_feedback(self.feedback)
-
-            if self.compute_task_solution(task) == MoveItErrorCodes.FAILURE:
+            plan_success = self.compute_task_solution(task)
+            if plan_success == MoveItErrorCodes.FAILURE:
                 rospy.loginfo("[ExecutiveNode]: Failed to get plan, exiting")
                 status = MoveItErrorCodes.PLANNING_FAILED
                 break
-        
+            
+            if task.task_type == ManipulationPlanRequest.DONE:
+                status = MoveItErrorCodes.SUCCESS
+                break
+            print(plan_success)
+            print("EXECUTINGGGGGGGG")
             error_code = self.execute_solution()
 
             if error_code == MoveItErrorCodes.SUCCESS:

@@ -38,7 +38,7 @@ bool ReadyPoseTask::init(const TaskParameters &parameters)
    ***************************************************/
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
-    _current_state->setTimeout(15);
+    _current_state->setTimeout(20.0);
 
     // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =

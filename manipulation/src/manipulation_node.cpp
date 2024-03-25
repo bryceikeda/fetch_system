@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
 
     manipulation->get_manipulation_plan_service = nh.advertiseService("get_manipulation_plan", &Manipulation::handleManipulationPlanRequest, manipulation.get());
     manipulation->update_planning_scene_service = nh.serviceClient<std_srvs::Trigger>("update_planning_scene");
+    manipulation->task_solution_publisher = nh.advertise<moveit_task_constructor_msgs::Solution>("/manipulation_node/top_solution", 1);
     // manipulation->update_planning_scene_service.waitForExistence();
 
     sleep(3);

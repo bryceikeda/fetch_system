@@ -19,7 +19,7 @@ bool PickTask::init(const TaskParameters &parameters)
 {
   TASK_INFO("Initializing mtc pipeline");
   auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
-  // sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+  sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
   sampling_planner->setPlannerId("RRTConnectkConfigDefault");
 
   // Cartesian planner
@@ -41,7 +41,7 @@ bool PickTask::init(const TaskParameters &parameters)
    ***************************************************/
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
-    _current_state->setTimeout(10);
+    _current_state->setTimeout(20);
 
     // Verify that object is not attached for picking and if object is attached for placing
     auto applicability_filter =
@@ -84,7 +84,7 @@ bool PickTask::init(const TaskParameters &parameters)
     {
       auto stage = std::make_unique<stages::Connect>(
           "move to pick", stages::Connect::GroupPlannerVector{{parameters.arm_group_name_, sampling_planner}});
-      stage->setTimeout(5.0);
+      stage->setTimeout(20.0);
       stage->properties().configureInitFrom(Stage::PARENT);
       addStageToTask(std::move(stage));
     }

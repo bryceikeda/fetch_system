@@ -10,9 +10,9 @@
 - object_id: "table on the left"
   key: "surface"
   header_frame_id: "odom"
-  pose: [.95, -.38, 0.0, 0.0, 0.0, 0.0, 1.0]
+  pose: [.95, -.4, 0.0, 0.0, 0.0, 0.0, 1.0]
   primitive_types: [[1]]
-  primitive_dimensions: [[.737, .75, .04]]
+  primitive_dimensions: [[.75, .75, .04]]
   primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1], ]
   subframe_names: ["slight left", "left", "far left"]
   subframe_poses: [[-.25, -.15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, .15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?
@@ -20,9 +20,9 @@
 - object_id: "table on the right"
   key: "surface"
   header_frame_id: "odom"
-  pose: [.95, .38, 0.0, 0.0, 0.0, 0.0, 1.0]
+  pose: [.95, .4, 0.0, 0.0, 0.0, 0.0, 1.0]
   primitive_types: [[1]]
-  primitive_dimensions: [[.737, .75, .04]]
+  primitive_dimensions: [[.75, .75, .04]]
   primitive_poses: [[0.0, 0.0, 0.645, 0, 0, 0, 1]]
   subframe_names: ["slight right", "right", "far right"]
   subframe_poses: [[-.25, .15, 0.665, 0, 0, 0, 1], [-.25, 0, 0.665, 0, 0, 0, 1], [-.25, -.15, 0.665, 0, 0, 0, 1]] # Objects are turned upside down when w = 1?

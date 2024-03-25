@@ -20,7 +20,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
 {
   TASK_INFO("Initializing mtc pipeline");
   auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
-  // sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
+  sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
   sampling_planner->setPlannerId("RRTConnectkConfigDefault");
 
   // Cartesian planner
@@ -43,7 +43,7 @@ bool PlaceTask::init(const TaskParameters &parameters)
   attached_object_name_ = getAttachedObjects().begin()->second.object.id;
   {
     auto _current_state = std::make_unique<stages::CurrentState>("current state");
-    _current_state->setTimeout(10);
+    _current_state->setTimeout(20);
 
     auto applicability_filter =
         std::make_unique<stages::PredicateFilter>("applicability test", std::move(_current_state));
@@ -68,11 +68,16 @@ bool PlaceTask::init(const TaskParameters &parameters)
     ROS_ERROR_STREAM("[" << task_name_.c_str() << "] Could not query scene graph");
     return 1;
   }
+  std::string place_surface = parameters.target_object_name_;
+  if(!related_nodes.empty())
+  {
+    place_surface = related_nodes[0];
+  }
 
   {
     auto stage = std::make_unique<stages::Connect>(
         "move to place", stages::Connect::GroupPlannerVector{{parameters.arm_group_name_, sampling_planner}});
-    stage->setTimeout(5.0);
+    stage->setTimeout(20.0);
     if(attached_object_name_ == "bottle")
     {
       stage->setPathConstraints(parameters.constraints_.at("upright_constraint"));
@@ -123,9 +128,9 @@ bool PlaceTask::init(const TaskParameters &parameters)
 
         // Set target pose
         geometry_msgs::PoseStamped p;
-        p.header.frame_id = parameters.target_object_name_ + "/" + subframe; // collision_object.header.frame_id;  // object_reference_frame was used before
+        p.header.frame_id = place_surface + "/" + subframe; // collision_object.header.frame_id;  // object_reference_frame was used before
         p.pose.orientation.w = 1;
-        p.pose.position.z = getHeightOffsetForSurface(attached_object_name_, parameters.target_object_name_, parameters.place_surface_offset_);
+        p.pose.position.z = getHeightOffsetForSurface(attached_object_name_, place_surface, parameters.place_surface_offset_);
 
         stage->setPose(p);
         stage->setMonitoredStage(current_state_stage_);

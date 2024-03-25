@@ -64,7 +64,7 @@ public:
 
   ros::ServiceServer get_manipulation_plan_service;
   ros::ServiceClient update_planning_scene_service;
-
+  ros::Publisher task_solution_publisher; 
 private:
   TaskParameters parameters;
   ros::NodeHandle nh_;
