@@ -10,9 +10,11 @@ from action_planner.msg import (
     ExecuteActionPlanGoal,
 )
 from moveit_msgs.msg import MoveItErrorCodes
-from language_model.language_model import LanguageModel
+#from language_model.language_model import LanguageModel
 from action_planner.action_plan_parser import ActionPlanParser
 from scene_graph.srv import QuerySceneGraph, QuerySceneGraphRequest, QuerySceneGraphResponse
+from action_planner.srv import GetUserApproval, GetUserApprovalRequest, GetUserApprovalResponse
+from action_planner.msg import UserApprovalResponse
 
 class ActionPlannerNode:
     def __init__(self):
@@ -31,9 +33,13 @@ class ActionPlannerNode:
         )
         self.scene_graph_query_client.wait_for_service()
 
+        self.get_user_approval_client = rospy.ServiceProxy(
+            "/get_user_approval", GetUserApproval
+        )
+
         rospy.loginfo("[ActionPlannerNode]: Action Plan Client Started")
 
-        self.language_model = LanguageModel()
+        ##self.language_model = LanguageModel()
         self.action_plan_parser = ActionPlanParser()
 
         
@@ -64,7 +70,6 @@ class ActionPlannerNode:
 
         # Call the scene graph query service with the constructed query
         res = self.scene_graph_query_client.call(query)
-        print(res.related_nodes)
         # Return the related nodes from the response
         return res.related_nodes
     
@@ -95,13 +100,23 @@ class ActionPlannerNode:
                 self.query_language_model()
                 self.speech_command = "" 
             elif self.language_model_output != []:
-                self.goal = ExecuteActionPlanGoal()
                 self.goal = self.action_plan_parser.get_action_plan_goal(
                     self.language_model_output
                 )
+                user_approval_response = self.get_user_approval_client(self.language_model_output)
+                if(user_approval_response.response.response == UserApprovalResponse.APPROVED):
+                    print("EXECUTE")
+                    self.execute_action_plan()
+                    self.is_executing = True
+                elif(user_approval_response.response.response == UserApprovalResponse.FEEDBACK):
+                    ###### TODO
+                    ################################
+                    print("FEEDBACK")
+                else:
+                    print("DELETE")                    
+
                 self.language_model_output = []
-                self.is_executing = True
-                self.execute_action_plan()
+
         elif self.is_executing:
             self.check_execution()
 

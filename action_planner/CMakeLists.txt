@@ -54,24 +54,27 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#    FILES
-#    ActionPlanRequest.msg
+add_message_files(
+    FILES
+    UserApprovalResponse.msg
+    #    ActionPlanRequest.msg
 # #   Message1.msg
 # #   Message2.msg
-# )
+ )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+    FILES
+    GetUserApproval.srv
+#    #   Service1.srv
+# #   Service2.srv
+  )
 
 ## Generate actions in the 'action' folder
 add_action_files(
    FILES
    ExecuteActionPlan.action
+   #GetActionPlanApproval.action
 #   Action1.action
 #   Action2.action
 )
