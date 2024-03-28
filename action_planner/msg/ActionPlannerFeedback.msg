@@ -1,0 +1,3 @@
+bool isPlanning
+string speech_command
+string speech_command_feedback

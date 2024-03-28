@@ -5,6 +5,7 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/PlanningSceneWorld.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <std_srvs/Trigger.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -15,7 +16,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
 #include <moveit_msgs/GetPlanningScene.h>
-
+#include <world_monitor/GetAttachedObject.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_extents.h>
@@ -37,7 +38,8 @@ public:
     bool applyPlanningScene(moveit_msgs::PlanningScene &planning_scene);
     void loadObjectParameters(const std::string objects_filepath);
     void loadSurfaceParameters(const std::string surfaces_filepath);
-
+    bool getAttachedObjectRequest(world_monitor::GetAttachedObject::Request &req, world_monitor::GetAttachedObject::Response &res);
+    
     moveit_msgs::PlanningScene updatePlanningScene();
     moveit_msgs::CollisionObject getObjectMesh(const std::string &name, moveit_msgs::CollisionObject &collisionObject);
 
@@ -53,6 +55,7 @@ public:
     ros::ServiceClient planning_scene_client;
     ros::ServiceServer update_planning_scene_service;
     ros::ServiceServer get_scene_objects_service;
+    ros::ServiceServer get_attached_object_service;
     tf2_ros::TransformBroadcaster tfb;
 
 private:
@@ -62,6 +65,7 @@ private:
     moveit_msgs::PlanningSceneWorld surface_object_properties;
     std::vector<std::string> objects_info;
     std::vector<geometry_msgs::TransformStamped> transformStampedArray;
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 };
 
 #endif

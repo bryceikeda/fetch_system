@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   actionlib_msgs
   scene_graph
+  world_monitor
 )
 
 ## System dependencies are found with CMake's conventions
@@ -57,6 +58,7 @@ catkin_python_setup()
 add_message_files(
     FILES
     UserApprovalResponse.msg
+    ActionPlannerFeedback.msg
     #    ActionPlanRequest.msg
 # #   Message1.msg
 # #   Message2.msg

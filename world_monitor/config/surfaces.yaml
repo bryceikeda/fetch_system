@@ -9,7 +9,7 @@
 #   mesh_poses: []
 - object_id: "table on the left"
   key: "surface"
-  header_frame_id: "odom"
+  header_frame_id: "base_link"
   pose: [.95, -.4, 0.0, 0.0, 0.0, 0.0, 1.0]
   primitive_types: [[1]]
   primitive_dimensions: [[.75, .75, .04]]
@@ -19,7 +19,7 @@
   mesh_poses: []
 - object_id: "table on the right"
   key: "surface"
-  header_frame_id: "odom"
+  header_frame_id: "base_link"
   pose: [.95, .4, 0.0, 0.0, 0.0, 0.0, 1.0]
   primitive_types: [[1]]
   primitive_dimensions: [[.75, .75, .04]]

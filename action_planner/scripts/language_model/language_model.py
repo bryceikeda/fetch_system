@@ -33,27 +33,30 @@ class LanguageModel:
             example_tasks, batch_size=512, convert_to_tensor=True, device=self.device
         )
 
+    def empty_cache(self):
+        torch.cuda.empty_cache()
+
     def query_language_model(self, query):
         inst_AP_variables = APVariables()
-
+        inst_AP_variables.query_task = query["task"]
+        inst_AP_variables.query_obj_names = query["object_names"]
+        inst_AP_variables.query_surface_names = query["surface_names"]
+        inst_AP_variables.action_list = query["action_list"]
+        inst_AP_variables.feedback = query["feedback"]
+        inst_AP_variables.action_plan = query["action_plan"]
+        inst_AP_variables.attached_object_name =  query["attached_object_name"]
+        
         if query["mode"] == "setup trigger":
-            inst_AP_variables.query_task = query["task"]
-            inst_AP_variables.query_obj_names = query["object_names"]
-            inst_AP_variables.query_surface_names = query["surface_names"]
-            inst_AP_variables.action_list = query["action_list"]
-            inst_AP_variables.feedback = query["feedback"]
-            inst_AP_variables.action_plan = query["action_plan"]
-
             inst_AP_variables.prompt = get_prompt(
                 inst_AP_variables, None, "trigger explain"
-            )  # construct prompt for explaination
+            )  # construct prompt for explanation
 
             samples, log_probs = self.generator(
                 inst_AP_variables.prompt,
                 self.hyperparams.sampling_params,
                 self.hyperparams.max_tokens,
                 self.hyperparams.stop,
-            )  # query Planning LM for single-step action candidates
+            )  # query Planning LM for action plan
 
             inst_AP_variables.explanation = samples[np.argmax(log_probs)]
             inst_AP_variables.prompt = get_prompt(
@@ -74,16 +77,23 @@ class LanguageModel:
 
             if "no trigger" in trigger_str:
                 query["mode"] = "generate action plan"
-                return self.query_llm(query)
+                return "no trigger", self.query_language_model(query)
+            
+            inst_AP_variables.prompt = get_prompt(
+                inst_AP_variables, None, "extract command"
+            ) # construct prompt
+            
+            samples, log_probs = self.generator(
+                inst_AP_variables.prompt, 
+                self.hyperparams.sampling_params, 
+                self.hyperparams.max_tokens, 
+                self.hyperparams.stop
+            )
+            
+            command_str = samples[np.argmax(log_probs)].translate(str.maketrans('', '', string.punctuation))
+            return trigger_str, command_str
 
         if query["mode"] == "generate action plan":
-            inst_AP_variables.query_task = query["task"]
-            inst_AP_variables.query_obj_names = query["object_names"]
-            inst_AP_variables.query_surface_names = query["surface_names"]
-            inst_AP_variables.action_list = query["action_list"]
-            inst_AP_variables.feedback = query["feedback"]
-            inst_AP_variables.action_plan = query["action_plan"]
-
             # populate all actions
             for action in inst_AP_variables.action_list:
                 if "<object>" in action:
@@ -105,10 +115,6 @@ class LanguageModel:
                     device=self.device,
                 )
 
-            inst_AP_variables.prompt = get_prompt(
-                inst_AP_variables, None, "explain"
-            )  # construct prompt for explaination
-
             # find most relevant example
             example_idx = get_similar_eg(
                 inst_AP_variables.query_task,
@@ -117,6 +123,10 @@ class LanguageModel:
                 self.example_task_embeddings,
                 self.translation_lm,
             )
+
+            inst_AP_variables.prompt = get_prompt(
+                inst_AP_variables, None, "explain"
+            )  # construct prompt for explanation
 
             samples, log_probs = self.generator(
                 inst_AP_variables.prompt,
@@ -131,66 +141,70 @@ class LanguageModel:
             # print(log_probs)
             # print(samples[np.argmax(log_probs)])
 
-            inst_AP_variables.prompt = get_prompt(
-                inst_AP_variables, example_idx, "action"
-            )  # construct prompt
-            assert generate_action_plan(
-                inst_AP_variables, self.generator, self.translation_lm, self.hyperparams
-            )  # generate action plan
-            inst_AP_variables.action_plan = [
-                i for i in inst_AP_variables.action_plan if i != "action plan"
-            ]
+            check_AP = False
+            while not check_AP:
+                inst_AP_variables.prompt = get_prompt(
+                    inst_AP_variables, example_idx, "action"
+                ) # construct prompt
+                
+                generate_action_plan(
+                    inst_AP_variables, self.generator, self.translation_lm, self.hyperparams
+                ) # generate action plan
+                
+                inst_AP_variables.action_plan = [i for i in inst_AP_variables.action_plan if i != "action plan"]
+                inst_AP_variables.feedback = ""
+                print("action_plan:", inst_AP_variables.action_plan)
+                
+                check_AP, inst_AP_variables = check_action_plan(inst_AP_variables)
+                print("AP feedback:", check_AP, "  ", inst_AP_variables.action_plan, "  ", inst_AP_variables.feedback)
+                print("================================================================\n")
 
-            # while inst_AP_variables.previous_action != "done" and ct < 10:
-            #   inst_AP_variables.feedback = ""
-            #   inst_AP_variables.previous_action = inst_AP_variables.action_plan[-1]
-            #   print(inst_AP_variables.previous_action)
-            #   ct += 1
-
-            print(inst_AP_variables.action_plan)
             return inst_AP_variables.action_plan
 
 
-if __name__ == "__main__":
-    language_model = LanguageModel()
-    #   query = {"mode": "generate action plan",
-    #            "task": "pour water to the glass and put it on the left table",
-    #            "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
-    #            "surface_names": ["table on the right", "table on the left"],
-    #            "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
-    #            "feedback": "",
-    #            "action_plan": []}
+# if __name__ == "__main__":
+#     language_model = LanguageModel()
+#     # query = {
+#     #     "mode": "generate action plan",
+#     #     "task": "pour water to the glass and put it on the left table",
+#     #     "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
+#     #     "surface_names": ["table on the right", "table on the left"],
+#     #     "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
+#     #     "feedback": "",
+#     #     "action_plan": []}
 
-    #   query = {"mode": "setup trigger",
-    #            "task": "pour water to the glass and after that done put it on the left table",
-    #            "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
-    #            "surface_names": ["table on the right", "table on the left"],
-    #            "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
-    #            "feedback": "",
-    #            "action_plan": []}
+#     # query = {
+#     #     "mode": "setup trigger",
+#     #     "task": "pour water to the glass and pick it up",
+#     #     "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
+#     #     "surface_names": ["table on the right", "table on the left"],
+#     #     "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
+#     #     "feedback": "",
+#     #     "action_plan": []}
 
-    #   query = {"mode": "setup trigger",
-    #            "task": "When the pringles is on the right table move bottle to the right table",
-    #            "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
-    #            "surface_names": ["table on the right", "table on the left"],
-    #            "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
-    #            "feedback": "",
-    #            "action_plan": []}
+#     # query = {
+#     #     "mode": "setup trigger",
+#     #     "task": "When the pringles is on the right table move bottle to the right table",
+#     #     "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
+#     #     "surface_names": ["table on the right", "table on the left"],
+#     #     "action_list": ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"],
+#     #     "feedback": "",
+#     #     "action_plan": []}
 
-    query = {
-        "mode": "setup trigger",
-        "task": "Every 2 hours move pringles to the right table",
-        "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
-        "surface_names": ["table on the right", "table on the left"],
-        "action_list": [
-            "pick <object>",
-            "place on <surface>",
-            "pour in <object>",
-            "wave at me",
-            "done",
-            "action plan",
-        ],
-        "feedback": "",
-        "action_plan": [],
-    }
-    language_model.query_language_model(query)
+#     query = {
+#         "mode": "setup trigger",
+#         "task": "Every 2 hours move pringles to the right table",
+#         "object_names": ["glass", "pringles", "mustard", "bottle", "cheezeit"],
+#         "surface_names": ["table on the right", "table on the left"],
+#         "action_list": [
+#             "pick <object>",
+#             "place on <surface>",
+#             "pour in <object>",
+#             "wave at me",
+#             "done",
+#             "action plan",
+#         ],
+#         "feedback": "",
+#         "action_plan": [],
+#     }
+#     print(language_model.query_language_model(query))

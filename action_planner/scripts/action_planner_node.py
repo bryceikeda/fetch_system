@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import atexit
 import rospy
 from std_msgs.msg import String
 import actionlib
@@ -10,11 +11,12 @@ from action_planner.msg import (
     ExecuteActionPlanGoal,
 )
 from moveit_msgs.msg import MoveItErrorCodes
-#from language_model.language_model import LanguageModel
+from language_model.language_model import LanguageModel
 from action_planner.action_plan_parser import ActionPlanParser
 from scene_graph.srv import QuerySceneGraph, QuerySceneGraphRequest, QuerySceneGraphResponse
 from action_planner.srv import GetUserApproval, GetUserApprovalRequest, GetUserApprovalResponse
-from action_planner.msg import UserApprovalResponse
+from action_planner.msg import UserApprovalResponse, ActionPlannerFeedback
+from world_monitor.srv import GetAttachedObject, GetAttachedObjectRequest, GetAttachedObjectResponse
 
 class ActionPlannerNode:
     def __init__(self):
@@ -26,27 +28,38 @@ class ActionPlannerNode:
         self.action_plan_client = actionlib.SimpleActionClient(
             "execute_action_plan", ExecuteActionPlanAction
         )
-        self.action_plan_client.wait_for_server()
+        # self.action_plan_client.wait_for_server()
 
         self.scene_graph_query_client = rospy.ServiceProxy(
             "/scene_graph/query", QuerySceneGraph
         )
-        self.scene_graph_query_client.wait_for_service()
+        # self.scene_graph_query_client.wait_for_service()
 
         self.get_user_approval_client = rospy.ServiceProxy(
             "/get_user_approval", GetUserApproval
         )
 
+        self.get_attached_object_client = rospy.ServiceProxy(
+            "/world_monitor/get_attached_object", GetAttachedObject
+        )
+
+
+        self.action_planner_feedback_publisher = rospy.Publisher(
+            "action_planner/feedback", ActionPlannerFeedback, queue_size=10
+        )
+
         rospy.loginfo("[ActionPlannerNode]: Action Plan Client Started")
 
-        ##self.language_model = LanguageModel()
+        self.language_model = LanguageModel()
         self.action_plan_parser = ActionPlanParser()
 
         
         self.language_model_output = []
         self.speech_command = ""
+        self.current_task = ""
+        self.user_feedback = ""
 
-        self.language_model_output = ["pick Pringles", "place on table on the right", "pick Cheezeit", "place on table on the right", "pick Cup", "place on table on the right", "done"]
+        #self.language_model_output = ["pick Pringles", "place on table on the right", "pick Cheezeit", "place on table on the right", "pick Cup", "place on table on the right", "done"]
         #self.language_model_output = ["pick Pringles", "place on table on the left", "pick Cheezeit", "place on table on the left", "pick Cup", "place on table on the left", "done"]
         #self.language_model_output = ["wave at me"]
         #self.speech_command = "move the pringles to the table on the left"
@@ -56,7 +69,9 @@ class ActionPlannerNode:
         self.object_names = []
         self.surface_names = []
         self.is_executing = False
-
+        self.is_giving_feedback = False
+        self.action_planner_feedback = ActionPlannerFeedback()
+        self.attached_object_name = ""
 
     def handle_model_states(self, msg):
         self.model_states = msg
@@ -73,13 +88,22 @@ class ActionPlannerNode:
         # Return the related nodes from the response
         return res.related_nodes
     
+    def query_world_monitor(self):
+        query = GetAttachedObjectRequest()
+        res = self.get_attached_object_client.call(query)
+        return res.attached_object_name
+    
     def query_language_model(self):
         self.surface_names = self.query_scene_graph("surface")
         self.object_names = self.query_scene_graph("object")
-        
+        self.attached_object_name = self.query_world_monitor()
+        self.action_planner_feedback.speech_command = self.current_task
+        self.action_planner_feedback.speech_command_feedback = self.user_feedback
+        self.action_planner_feedback.isPlanning = True
+        self.action_planner_feedback_publisher.publish(self.action_planner_feedback)
         query = {
             "mode": "generate action plan",
-            "task": self.speech_command,
+            "task": self.current_task,
             "object_names": self.object_names,
             "surface_names": self.surface_names,
             "action_list": [
@@ -89,29 +113,37 @@ class ActionPlannerNode:
                 "done",
                 "action plan",
             ],
-            "feedback": "",
+            "feedback": self.user_feedback,
             "action_plan": [],
+            "attached_object_name": self.attached_object_name
         }
         self.language_model_output = self.language_model.query_language_model(query)
 
     def run(self):
         if not self.is_executing:
             if self.speech_command != "":
+                if self.is_giving_feedback:
+                    self.user_feedback += " " + self.speech_command
+                else:
+                    self.current_task = self.speech_command
+                    self.user_feedback = ""
                 self.query_language_model()
-                self.speech_command = "" 
+                self.speech_command = ""
+                self.is_giving_feedback = False
             elif self.language_model_output != []:
                 self.goal = self.action_plan_parser.get_action_plan_goal(
-                    self.language_model_output
+                    self.language_model_output, self.attached_object_name
                 )
                 user_approval_response = self.get_user_approval_client(self.language_model_output)
                 if(user_approval_response.response.response == UserApprovalResponse.APPROVED):
+                    self.action_planner_feedback.isPlanning = False
+                    self.action_planner_feedback_publisher.publish(self.action_planner_feedback)
                     print("EXECUTE")
                     self.execute_action_plan()
                     self.is_executing = True
                 elif(user_approval_response.response.response == UserApprovalResponse.FEEDBACK):
-                    ###### TODO
-                    ################################
-                    print("FEEDBACK")
+                    print("GIVING FEEDBACK")
+                    self.is_giving_feedback = True
                 else:
                     print("DELETE")                    
 
@@ -145,7 +177,6 @@ class ActionPlannerNode:
                     "[ActionPlannerNode]: Action Plan Execution Control Failed"
                 )
             self.is_executing = False
-            self.speech_command = "wave at me"
         elif self.action_plan_client.get_state() == actionlib.GoalStatus.ABORTED:
             rospy.loginfo("[ActionPlannerNode]: Action Plan Execution Aborted")
             self.is_executing = False
@@ -156,6 +187,7 @@ class ActionPlannerNode:
 if __name__ == "__main__":
     action_planner_node = ActionPlannerNode()
     rospy.sleep(3)
+    atexit.register(action_planner_node.language_model.empty_cache)
 
     rate = rospy.Rate(10)  # 10hz
     # action_planner_node.query_language_model()

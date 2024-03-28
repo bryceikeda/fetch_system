@@ -31,6 +31,21 @@ bool WorldMonitor::getSceneObjectsRequest(moveit_msgs::GetPlanningScene::Request
     }
 }
 
+bool WorldMonitor::getAttachedObjectRequest(world_monitor::GetAttachedObject::Request &req, world_monitor::GetAttachedObject::Response &res)
+{
+    std::map<std::string, moveit_msgs::AttachedCollisionObject> attached_objects = planning_scene_interface.getAttachedObjects();
+
+    // Check if there are attached objects
+    if (attached_objects.empty()) {
+        res.attached_object_name = ""; 
+        return true; 
+    }
+
+    // Retrieve the name of the first attached object
+    res.attached_object_name = attached_objects.begin()->first;
+    return true; 
+}
+
 bool WorldMonitor::updatePlanningSceneRequest(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
 {
     // Service call /update_planning_scene will move object positions

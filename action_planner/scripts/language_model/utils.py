@@ -83,41 +83,56 @@ def get_prompt(inst_AP_variables, example_idx, mode):
                        'Your job is to identify if the input has a trigger and the type of trigger if it does.\n' + \
                        'The triggers can be found in the trigger_list.\n' + \
                        'trigger_list = ["no trigger present", "zone trigger inside <surface>", "timed trigger <time>"]\n' + \
-                       'The <surface> token should be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.\n' + \
-                       'The <time> token should be replaced by an unit of time.'
+                       'The <surface> token should be replaced by a surface in surface_list that the zone trigger refers to. You see the surfaces from surface_list in the same room as you.\n' + \
+                       'The <time> token should be replaced by an unit of time that the timed trigger refers to.'
 
     prompt["user"] = f'This is the input from the user: {inst_AP_variables.query_task}.\n' + \
+                     f'object_list = {inst_AP_variables.query_obj_names}\n' + \
                      f'surface_list = {inst_AP_variables.query_surface_names}\n\n' + \
                      'Does the user input have a trigger? If it does, what is the trigger from trigger_list that satisfies the condition in the user input?'
 
   if mode == "trigger":
     prompt["system"] = 'You are a helpful assistant. Your job is to map the input to a trigger in the trigger_list.\n' + \
                        'trigger_list = ["no trigger present", "zone trigger inside <surface>", "timed trigger <time>"]\n' + \
-                       'The <surface> token should be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.\n' + \
-                       'The <time> token should be replaced by an unit of time.'
+                       'The <surface> token should be replaced by a surface in surface_list that the zone trigger refers to. You see the surfaces from surface_list in the same room as you.\n' + \
+                       'The <time> token should be replaced by an unit of time that the timed trigger refers to.'
 
     prompt["user"] = f'This is the input: {inst_AP_variables.query_task}\n' + \
+                     f'object_list = {inst_AP_variables.query_obj_names}\n' + \
+                     f'surface_list = {inst_AP_variables.query_surface_names}\n\n' + \
                      f'Here is an explanation to guide your output: {inst_AP_variables.explanation}\n' + \
                      'Map the input to a trigger from the trigger_list. Respond using only a trigger in the trigger_list.'
+
+  if mode == "extract command":
+    prompt["system"] = 'You are a helpful assistant. You will be given an input with a command to be executed and a condition that needs to be satisfied. ' + \
+                       'The condition in the input has been satisfied. Your job is to respond with the command from the input that needs to be executed now.'
+
+    prompt["user"] = f'This is the input: {inst_AP_variables.query_task}\n' + \
+                     'The condition in the input has been satisfied. What is the command that needs to be executed now? Respond using a short sentence.'
 
   if mode == "explain":
     prompt["system"] = f'You are a helpful assistant robot with an arm, capable of performing the actions in action_list.\n' + \
                        f'action_list = [{", ".join(inst_AP_variables.action_list)}]\n' + \
-                       f'The <object> token should be replaced by an object in object_list. You see the objects from object_list in the same room as you.\n' + \
-                       f'The <surface> token should be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.'
+                       f'The <object> token should be replaced by an object in object_list that the action refers to. You see the objects from object_list in the same room as you.\n' + \
+                       f'The <surface> token should be replaced by a surface in surface_list that the action refers to. You see the surfaces from surface_list in the same room as you.'
 
     prompt["user"] = f'This is your task, object_list and surface_list:\n\n' + \
                      f'Task: {inst_AP_variables.query_task}\n' + \
                      f'object_list = {inst_AP_variables.query_obj_names}\n' + \
-                     f'surface_list = {inst_AP_variables.query_surface_names}\n\n' + \
-                     f'Write a paragraph explaining how you can complete the given task using the action_list, object_list and surface_list.'
+                     f'surface_list = {inst_AP_variables.query_surface_names}\n'
+    
+    if inst_AP_variables.feedback is not '':
+      prompt["user"] += f'You also received this feedback: {inst_AP_variables.feedback}\n' + \
+        'Write a paragraph explaining how you can complete the given task using the action_list, object_list, surface_list and feedback.\n'
+    else:
+      prompt["user"] += f'Write a paragraph explaining how you can complete the given task using the action_list, object_list and surface_list.\n'
 
   if mode == "action":
     # [pick <object>, place on <surface>, move to <object>, move to <surface>, wipe <surface>, pour in <object>, done]
     prompt["system"] = f'You are a helpful assistant robot with an arm, capable of performing the actions in action_list.\n' + \
                        f'action_list = [{", ".join(inst_AP_variables.action_list)}]\n' + \
-                       f'The <object> token should be replaced by an object in object_list. You see the objects from object_list in the same room as you.\n' + \
-                       f'The <surface> token should be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.'
+                       f'The <object> token should be replaced by an object in object_list that the action refers to. You see the objects from object_list in the same room as you.\n' + \
+                       f'The <surface> token should be replaced by a surface in surface_list that the action refers to. You see the surfaces from surface_list in the same room as you.'
 
     prompt["user"] = ""
     if example_idx is not False:
@@ -138,10 +153,10 @@ def get_prompt(inst_AP_variables, example_idx, mode):
                       f'object_list = {inst_AP_variables.query_obj_names}\n' + \
                       f'surface_list = {inst_AP_variables.query_surface_names}\n\n'
 
-    if inst_AP_variables.explanation != '':
+    if inst_AP_variables.explanation is not '':
       prompt["user"] += f'Here is an explanation on how you can solve the task: {inst_AP_variables.explanation}\n\n'
 
-    if inst_AP_variables.feedback != '':
+    if inst_AP_variables.feedback is not '':
       prompt["user"] += f'You also received this feedback: {inst_AP_variables.feedback}\n\n'
 
     prompt["user"] += 'What is the action plan for your current task? ' + \
@@ -151,33 +166,6 @@ def get_prompt(inst_AP_variables, example_idx, mode):
     for i in range(len(inst_AP_variables.action_plan)):
       prompt["user"] += f'{inst_AP_variables.action_plan[i]}\n'
     # prompt["user"] += f'Step {len(inst_AP_variables.action_plan)+1}: '
-
-  # if mode == "condition":
-  #   prompt["system"] = f'You are a helpful assistant robot with an arm, capable of performing the actions in action_list.\naction_list = [{", ".join(inst_AP_variables.action_list)}]\n\ncondition_list has elements in the format: action: "conditions". It associates each action with the conditions that should be satisfied to safely perform that respective action.\ncondition_list = [{", ".join(inst_AP_variables.condition_list)}]\n\nThe <object> token can be replaced by an object in object_list. You see the objects from object_list in the same room as you.\nThe <surface> token can be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.'
-
-  #   prompt["user"] = f'This is your current task, object_list and surface_list:\n\nTask: {inst_AP_variables.query_task}\nobject_list = {inst_AP_variables.query_obj_names}\nsurface_list = {inst_AP_variables.query_surface_names}\n'
-
-  #   if len(inst_AP_variables.action_plan) > 0:
-  #     prompt["user"] += '\nThese are the actions you have taken so far to complete the task:\nAction plan:\n'
-  #     for i in range(len(inst_AP_variables.action_plan)):
-  #       prompt["user"] += f'{inst_AP_variables.action_plan[i]}\n'
-
-  #   prompt["user"] += f'\nThis is the next action you plan to perform: "{inst_AP_variables.confirm_action}".\n\nWhat are the necessary conditions from condition_list that should be satisfied for the next action?\n'
-
-  # if mode == "confirm":
-  #   prompt["system"] = f'You are a helpful assistant robot with an arm, capable of performing the actions in action_list.\naction_list = [{", ".join(inst_AP_variables.action_list)}]\n\ncondition_list has elements in the format: action: "conditions". It associates each action with the conditions that should be satisfied to safely perform that respective action.\ncondition_list = [{", ".join(inst_AP_variables.condition_list)}]\n\nThe <object> token can be replaced by an object in object_list. You see the objects from object_list in the same room as you.\nThe <surface> token can be replaced by a surface in surface_list. You see the surfaces from surface_list in the same room as you.'
-
-  #   prompt["user"] = []
-  #   for condition, log_prob in zip(inst_AP_variables.action_conditions["condition"], inst_AP_variables.action_conditions["log_prob"]):
-  #     prompt_user = f'This is your current task, object_list and surface_list:\n\nTask: {inst_AP_variables.query_task}\nobject_list = {inst_AP_variables.query_obj_names}\nsurface_list = {inst_AP_variables.query_surface_names}\n'
-
-  #     if len(inst_AP_variables.action_plan) > 0:
-  #       prompt_user += '\nThese are the actions you have taken so far to complete the task:\nAction plan:\n'
-  #       for i in range(len(inst_AP_variables.action_plan)):
-  #         prompt_user += f'{inst_AP_variables.action_plan[i]}\n'
-
-  #     prompt_user += f'\nThis is the next action you plan to perform: "{inst_AP_variables.confirm_action}".\n\nThis is what you know about the conditions that need to be satisfied to perform the next action: {condition}.\nThis is what you see relevant to the next action: "{", ".join(inst_AP_variables.scene_relationships)}".\nCan the next action be performed? Respond using only yes or no.'
-  #     prompt["user"].append([prompt_user, log_prob])
 
   print("Prompt: ")
   print("System: ", prompt["system"])
@@ -333,10 +321,52 @@ def process_objects(NL_samples, inst_AP_variables, DIST_OBJ):
   return objects_robot, object_disamb_scores
 
 
+def check_action_plan(inst_AP_variables):
+  # ["pick <object>", "place on <surface>", "pour in <object>", "wave at me", "done", "action plan"]
+  # rule 1: place before another pick
+  # rule 2: pick before place
+  # rule 3: pick before pour
+  # rule 4: place before wave
+
+  picked_object = inst_AP_variables.attached_object_name
+  for step, action in enumerate(inst_AP_variables.action_plan):
+    if action.startswith("pick "):
+      current_object = action[5:]
+      if picked_object != "":
+        inst_AP_variables.feedback += 'If you want to pick, you should place the picked object on a surface before picking another object. '
+        # inst_AP_variables.action_plan = inst_AP_variables.action_plan[:step]
+        inst_AP_variables.action_plan = []
+      picked_object = current_object
+
+    if action.startswith("place on "):
+      # current_surface = action[9:]
+      if picked_object == "":
+        inst_AP_variables.feedback += 'You should pick up an object before placing it on a surface'
+        # inst_AP_variables.action_plan = inst_AP_variables.action_plan[:step]
+        inst_AP_variables.action_plan = []
+      picked_object = ""
+
+    if action.startswith("pour in "):
+      # current_object = action[8:]
+      if picked_object == "":
+        inst_AP_variables.feedback += 'If you want to pour in, you should pick up an object before pouring anything from it in another object'
+        # inst_AP_variables.action_plan = inst_AP_variables.action_plan[:step]
+        inst_AP_variables.action_plan = []
+
+    if action == "wave at me":
+      if picked_object != "":
+        inst_AP_variables.feedback += 'If you want to wave, you should place the picked object on a surface before waving'
+        # inst_AP_variables.action_plan = inst_AP_variables.action_plan[:step]
+        inst_AP_variables.action_plan = []
+
+  if inst_AP_variables.feedback == "":
+    return True, inst_AP_variables
+  return False, inst_AP_variables
+
+
 def generate_action_plan(inst_AP_variables, generator, translation_lm, hyperparams):
   # try:
   samples, log_probs = generator(inst_AP_variables.prompt, hyperparams.sampling_params, hyperparams.max_tokens, hyperparams.stop) # query Planning LM for single-step action candidates
-  print("-------------------------", samples)
   samples, log_probs = reduce_samples(samples, log_probs)
   NL_samples, action_matching_scores, action_LLM_scores = process_action_plans(inst_AP_variables, samples, log_probs, translation_lm, hyperparams.SAMPLE_MATCH_NUM, hyperparams.LLM_ACT)
 

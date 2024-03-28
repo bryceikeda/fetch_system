@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-
+import torch
+import gc
 import numpy as np
+import atexit
 import whisper
 import time
 import pyaudio
@@ -9,7 +11,7 @@ import rospy
 from std_msgs.msg import String
 from alive_progress import alive_bar
 import time, os, sys, contextlib
-
+from std_msgs.msg import Float32
 # Suppress errors looking for device index
 @contextlib.contextmanager
 def ignoreStderr():
@@ -29,6 +31,8 @@ class SpeechToTextNode:
         # Initialize the ROS node
         rospy.init_node("speech_to_text_node")
 
+        self.progress_publisher = rospy.Publisher('/user_input/listening_progress', Float32, queue_size=10)
+
         self.key_phrase = "hey fetch"
         self.model = whisper.load_model("small")
         with ignoreStderr():
@@ -42,6 +46,12 @@ class SpeechToTextNode:
         self.speech_publisher = rospy.Publisher('user_input/speech', String, queue_size=10)
         self.chunk = chunk
         self.record_time = record_time
+        self.progress = Float32()
+
+    def exit_handler(self):
+        del self.model
+        torch.cuda.empty_cache()
+        gc.collect()
 
     # Process and transcribe audio data
     def process_audio(self, audio_data, language="en"):
@@ -63,6 +73,8 @@ class SpeechToTextNode:
             print('Listening for "Hey Fetch [COMMAND]"...')
             with alive_bar(self.record_time, title='', spinner=None, monitor=False, stats=False, theme='classic') as progress_bar:
                 for i in range(self.record_time):
+                    self.progress.data = i / self.record_time
+                    self.progress_publisher.publish(self.progress)
                     data = self.audio_interface.read(self.chunk, exception_on_overflow=False)
                     audio_data += data
                     time.sleep(.005)
@@ -84,7 +96,9 @@ class SpeechToTextNode:
 
 if __name__ == "__main__":
     speech_to_text_node = SpeechToTextNode(1024, 16000, 1, pyaudio.paInt16, None, 100)
-    rospy.sleep(3)
+    atexit.register(speech_to_text_node.exit_handler)
+
+    rospy.sleep(3)    
     rate = rospy.Rate(10) # 10hz
     while not rospy.is_shutdown():
         speech_to_text_node.run()

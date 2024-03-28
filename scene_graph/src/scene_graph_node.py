@@ -36,7 +36,7 @@ class SceneGraphNode:
             self.handle_scene_relationships
         )
         self.delete_trigger_subscriber = rospy.Subscriber(
-            "/unity/delete_trigger_node",
+            "/unity/delete_trigger",
             String,
             self.handle_delete_trigger
         )

@@ -64,5 +64,5 @@ class APVariables:
         self.previous_action = ""
         self.confirm_action = ""
         self.action_conditions = {}
-
+        self.attached_object_name = ""
         self.step = 0
